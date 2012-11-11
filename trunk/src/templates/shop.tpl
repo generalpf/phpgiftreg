@@ -14,41 +14,60 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *}
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Script//EN" "DTD/xhtml1-strict.dtd">
-<html lang="en" xml:lang="en" xmln="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 	<title>Gift Registry - Shopping List for {$ufullname}</title>
-	<link href="styles.css" type="text/css" rel="stylesheet" />
-	<script language="JavaScript" type="text/javascript">
+	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+    <script language="JavaScript" type="text/javascript">
 		function printPage() {
 			window.print();
 		}
 	</script>
 </head>
-<body>
+<body data-offset="80" data-target=".subnav" data-spy="scroll">
+	<div class="container">
 	{if $message != ''}
-		<span class="message">{$message|escape:'htmlall'}</span>
-	{/if}
-	<p class="pagetitle">Gift Registry - Shopping List for {$ufullname|escape:'htmlall'}</p>
-	{if $opt.show_helptext}
-		<p>
-			<div class="helptext">
-				<ul>
-					<li>If you intend to purchase a gift for this person, click the <img src="images/lock_co.gif"> icon.  If you end up actually purchasing it, come back and click the <img src="images/step_done.gif"> icon.  If you change your mind and don't want to buy it, come back and click the <img src="images/unlock_co.gif"> icon.</li>
-					<li>If you return something you've purchased, come back and click the <img src="images/run_exc.gif"> icon.  It will remain reserved for you.</li>
-					<li>Just because an item has a URL listed doesn't mean you have to buy it from there (unless the comment says so).</li>
-					<li>You can click the column headers to sort by that attribute.</li>
-					<li>If you see something you'd like for yourself, click the <img src="images/toolbar_replace.gif"> icon to copy it to your own list.</li>
-				</ul>
+		<div class="row">
+			<div class="span12">
+				<div class="alert alert-success">
+					{$message|escape:'htmlall'}
+				</div>
 			</div>
-		</p>
+		</div>
 	{/if}
-	<div align="right">
-		<img src="images/lock_co.gif" alt="Reserve" title="Reserve"> = Reserve, <img src="images/unlock_co.gif" alt="Release" title="Release"> = Release, <img src="images/step_done.gif" alt="Purchase" title="Purchase"> = Purchase, <img src="images/run_exc.gif" alt="Return" title="Return"> = Return, <img src="images/toolbar_replace.gif" alt="I Want This Too" title="I Want This Too"> = I Want This Too
+	<div class="row">
+		<h1>Gift Registry - Shopping List for {$ufullname|escape:'htmlall'}</h1>
 	</div>
-	<p>
-		<table class="partbox" width="100%" cellpadding="3" cellspacing="0">
-			<tr valign="top">
+	{if $opt.show_helptext}
+		<div class="row">
+			<div class="span12">
+				<div class="alert alert-info">
+					<ul>
+						<li>If you intend to purchase a gift for this person, click the <img src="images/lock_co.gif"> icon.  If you end up actually purchasing it, come back and click the <img src="images/step_done.gif"> icon.  If you change your mind and don't want to buy it, come back and click the <img src="images/unlock_co.gif"> icon.</li>
+						<li>If you return something you've purchased, come back and click the <img src="images/run_exc.gif"> icon.  It will remain reserved for you.</li>
+						<li>Just because an item has a URL listed doesn't mean you have to buy it from there (unless the comment says so).</li>
+						<li>You can click the column headers to sort by that attribute.</li>
+						<li>If you see something you'd like for yourself, click the <img src="images/toolbar_replace.gif"> icon to copy it to your own list.</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	{/if}
+	<div class="row">
+		<div class="span6 offset6">
+			<div class="alert alert-info">
+		<img src="images/lock_co.gif" alt="Reserve" title="Reserve"> = Reserve, <img src="images/unlock_co.gif" alt="Release" title="Release"> = Release, <img src="images/step_done.gif" alt="Purchase" title="Purchase"> = Purchase, <img src="images/run_exc.gif" alt="Return" title="Return"> = Return, <img src="images/toolbar_replace.gif" alt="I Want This Too" title="I Want This Too"> = I Want This Too
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="span12">
+			<div class="well">
+		<table>
+			<thead>
+			<tr>
 				<th class="colheader"><a href="shop.php?shopfor={$shopfor}&sort=ranking">Rank</a></th>
 				<th class="colheader"><a href="shop.php?shopfor={$shopfor}&sort=description">Description</a></th>
 				<th class="colheader"><a href="shop.php?shopfor={$shopfor}&sort=category">Category</a></th>
@@ -58,15 +77,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 				<th class="rcolheader">&nbsp;</th>
 				<th class="rcolheader">&nbsp;</th>
 			</tr>
-			{assign var="i" value=0}
+			</thead>
+			<tbody>
 			{foreach from=$shoprows item=row}
-				{assign var="i" value=$i+1}
-				{if $i % 2 == 0}
-					{assign var="rowclass" value="evenrow"}
-				{else}
-					{assign var="rowclass" value="oddrow"}
-				{/if}
-				<tr valign="top" class="{$rowclass}">
+				<tr valign="top">
 					<td nowrap>{$row.rendered}</td>
 					<td>
 						{$row.description|escape:'htmlall'}
@@ -172,10 +186,18 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					</td>
 				</tr>
 			{/foreach}
+			</tbody>
 		</table>
-	</p>
-	<p>
-		<a onClick="printPage()" href="#">Send to printer</a>&nbsp;/&nbsp;<a href="index.php">Back to main</a>
-	</p>
+	</div>
+	</div>
+	</div>
+	<div class="row">
+		<div class="span6">
+			<div class="well">
+				<a onClick="printPage()" href="#">Send to printer</a>
+			</div>
+		</div>
+	</div>
+	</div>
 </body>
 </html>
