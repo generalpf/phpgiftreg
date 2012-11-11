@@ -64,102 +64,22 @@ if (!empty($_POST["action"])) {
 		exit;
 	}
 }
-echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n";
-?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<title>Gift Registry - Update Profile</title>
-<link href="styles.css" type="text/css" rel="stylesheet" />
-<script language="JavaScript" type="text/javascript">
-	function confirmPassword() {
-		var theForm = document.forms["changepwd"];
-		if (theForm.newpwd.value != theForm.confpwd.value) {
-			alert("Passwords don't match.");
-			return false;
-		}
-		return true;
-	}
-	function validateProfile() {
-		var theForm = document.forms["profile"];
-		if (!theForm.fullname.value.match("\\S")) {
-			alert("A full name is required.");
-			theForm.fullname.focus();
-			return false;
-		}
-		if (!theForm.email.value.match("\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*")) {
-			alert("The e-mail address '" + theForm.email.value + "' is not a valid address.");
-			theForm.email.focus();
-			return false;
-		}
-		return true;
-	}
-</script>
-</head>
-<body>
-<form name="changepwd" action="profile.php" method="POST" onSubmit="return confirmPassword();">
-	<input type="hidden" name="action" value="changepwd">
-	<p>
-		<table class="partbox" cellpadding="3">
-			<tr class="partboxtitle">
-				<td colspan="2" align="center">Change Password</td>
-			</tr>
-			<tr>
-				<td>New Password</td>
-				<td><input type="password" name="newpwd"></td>
-			</tr>
-			<tr>
-				<td>Confirm Password</td>
-				<td><input type="password" name="confpwd"></td>
-			</tr>
-			<tr>
-				<td colspan="2" align="center"><input type="submit" value="Change Password"></td>
-			</tr>
-		</table>
-	</p>
-</form>
-<?php
+
 $query = "SELECT fullname, email, email_msgs, comment FROM {$OPT["table_prefix"]}users WHERE userid = " . $userid;
 $rs = mysql_query($query) or die("You don't exist: " . mysql_error());
-$row = mysql_fetch_array($rs,MYSQL_ASSOC);
-?>
-<form name="profile" action="profile.php" method="POST" onSubmit="return validateProfile();">
-	<input type="hidden" name="action" value="save">
-	<p>
-		<table class="partbox" cellpadding="3">
-			<tr class="partboxtitle">
-				<td colspan="2" align="center">Update Profile</td>
-			</tr>
-			<tr>
-				<td>Full Name</td>
-				<td><input type="text" name="fullname" value="<?php echo htmlspecialchars($row["fullname"]); ?>"></td>
-			</tr>
-			<tr>
-				<td>E-mail Address</td>
-				<td><input type="text" name="email" value="<?php echo htmlspecialchars($row["email"]); ?>"></td>
-			</tr>
-			<tr>
-				<td colspan="2">
-					<input type="checkbox" name="email_msgs" <?php if ($row["email_msgs"] == 1) echo "CHECKED"; ?>>E-mail me a copy of every message
-				</td>
-			</tr>
-			<tr>
-				<td colspan="2">
-					Comments / shipping address / etc. (optional)<br />
-					<textarea name="comment" rows="5" cols="40"><?php echo htmlspecialchars($row["comment"]); ?></textarea>
-				</td>
-			</tr>
-			<tr>
-				<td colspan="2" align="center"><input type="submit" value="Update Profile"></td>
-			</tr>
-		</table>
-	</p>
-</form>
-<?php
+$row = mysql_fetch_array($rs, MYSQL_ASSOC);
+$fullname = $row['fullname'];
+$email = $row['email'];
+$email_msgs = $row['email_msgs'];
+$comment = $row['comment'];
 mysql_free_result($rs);
-?>
-<p>
-<a href="index.php">Back to main</a>
-</p>
-</body>
-</html>
+
+define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
+require_once(SMARTY_DIR . 'Smarty.class.php');
+$smarty = new Smarty();
+$smarty->assign('fullname', $fullname);
+$smarty->assign('email', $email);
+$smarty->assign('email_msgs', $email_msgs);
+$smarty->assign('comment', $comment);
+$smarty->assign('opt', $OPT);
+$smarty->display('profile.tpl');
