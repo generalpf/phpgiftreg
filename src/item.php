@@ -197,221 +197,61 @@ if (!empty($_REQUEST["action"])) {
 		exit;
 	}
 }
-echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n";
-?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<title>Gift Registry - Edit Item</title>
-<link href="styles.css" type="text/css" rel="stylesheet" />
-</head>
-<body onLoad="document.item.description.focus();">
-<?php
-if ($OPT["show_helptext"]) {
-	?>
-	<p><div class="helptext">
-		Helpful hints:
-		<ul>
-			<li>Include a URL copied &amp; pasted from the address bar of your browser so that potential buyers can see exactly what you want.</li>
-			<li>If the item description and URL can't describe exactly what you want, use the <strong>Comment</strong> area to mention anything you feel is necessary.  It doesn't mean the shopper has to buy the item from that website.</li>
-			<li>If you don't know the price of the item, simply enter <strong>0</strong>.</li>
-			<li>Try not to set all your items at the same ranking level.  When someone is shopping for you, they'll rely on the ranking to know what you want the most.  If you don't think there are enough levels, or the descriptions aren't adequate, ask an administrator to add or change them.</li>
-			<?php
-			if ($OPT["allow_multiples"] == 1) {
-				?>
-				<li>The quantity field indicates the number of that item that you want.  Once that many are bought or reserved, no more will be available.  If you have no limit on how many you want, enter 999 (for example).</li>
-				<?php
-			}
-			?>
-		</ul>
-	</div></p>
-	<?php
+
+$rs = mysql_query("SELECT categoryid, category FROM {$OPT["table_prefix"]}categories ORDER BY category");
+$categories = array();
+while ($row = mysql_fetch_assoc($rs, MYSQL_ASSOC)) {
+	$categories[] = $row;
 }
-?>
-<form name="item" method="POST" action="item.php" enctype="multipart/form-data">	
-	<?php 
-	if ($action == "edit" || (isset($haserror) && $action == "update")) {
-		?>
-		<input type="hidden" name="itemid" value="<?php echo (int) $_REQUEST["itemid"]; ?>">
-		<input type="hidden" name="action" value="update">
-		<?php
-	}
-	else if ($action == "add" || (isset($haserror) && $action == "insert")) {
-		?>
-		<input type="hidden" name="action" value="insert">
-		<?php
-	}
-	?>
-	<div align="center">
-		<table class="partbox">
-			<tr valign="top">
-				<td>Description</td>
-				<td>
-					<input name="description" type="text" value="<?php echo htmlspecialchars(stripslashes($description)); ?>" maxlength="255" size="50"/>
-					<?php
-					if (isset($description_error)) {
-						?><br /><font color="red"><?php echo $description_error ?></font><?php
-					}
-					?>
-				</td>
-			</tr>
-			<tr valign="top">
-				<td>Category</td>
-				<td>
-					<select name="category">
-						<option value="" <?php if ($category == NULL) echo "SELECTED"; ?>>Uncategorized</option>
-						<?php
-						$rs = mysql_query("SELECT categoryid, category FROM {$OPT["table_prefix"]}categories ORDER BY category");
-						while ($row = mysql_fetch_assoc($rs)) {
-							echo "<option value=\"" . $row["categoryid"] . "\"" . (($category == $row["categoryid"]) ? " SELECTED" : "") . ">" . $row["category"] . "</option>\n";
-						}
-						mysql_free_result($rs);
-						?>
-					</select>
-				</td>
-			</tr>
-			<tr valign="top">
-				<td>Price (<?php echo $OPT["currency_symbol"]; ?>)</td>
-				<td>
-					<input name="price" type="text" value="<?php echo stripslashes($price); ?>" />
-					<?php
-					if (isset($price_error)) {
-						?><br /><font color="red"><?php echo $price_error ?></font><?php
-					}
-					?>
-				</td>
-			</tr>
-			<tr valign="top">
-				<td>Store/Retailer</td>
-				<td>
-					<input name="source" type="text" value="<?php echo htmlspecialchars(stripslashes($source)); ?>" maxlength="255" size="50"/>
-					<?php
-					if (isset($source_error)) {
-						?><br /><font color="red"><?php echo $source_error ?></font><?php
-					}
-					?>
-				</td>
-			</tr>
-			<tr valign="top">
-				<td>Ranking</td>
-				<td>
-					<?php
-					$query = "SELECT ranking, title FROM {$OPT["table_prefix"]}ranks ORDER BY rankorder";
-					$ranks = mysql_query($query) or die("Could not query: " . mysql_error());
-					?>
-					<select name="ranking" size="<?php echo mysql_num_rows($ranks); ?>">
-						<?php
-						while ($row = mysql_fetch_array($ranks,MYSQL_ASSOC)) {
-							?>
-							<option value="<?php echo $row["ranking"]; ?>" <?php if ($row["ranking"] == $ranking) echo "SELECTED"; ?>><?php echo $row["title"]; ?></option>
-							<?php
-						}
-						mysql_free_result($ranks);
-						?>
-					</select>
-					<?php
-					if (isset($ranking_error)) {
-						?><br /><font color="red"><?php echo $ranking_error ?></font><?php
-					}
-					?>
-				</td>
-			</tr>
-			<?php
-			if ($OPT["allow_multiples"] == 1) {
-				?>
-				<tr valign="top">
-					<td>Quantity<br /></td>
-					<td>
-						<input name="quantity" type="text" value="<?php echo $quantity; ?>" maxlength="3" size="3"/>
-						<?php
-						if (isset($quantity_error)) {
-							?><br /><font color="red"><?php echo $quantity_error ?></font><?php
-						}
-						?>
-					</td>
-				</tr>
-				<?php
-			}
-			else {
-				?>
-				<input type="hidden" name="quantity" value="1">
-				<?php
-			}
-			?>
-			<tr valign="top">
-				<td>URL<br /><i>(optional)</i></td>
-				<td>
-					<input name="url" type="text" value="<?php echo htmlspecialchars(stripslashes($url)); ?>" maxlength="255" size="50"/>
-					<?php
-					if (isset($url_error)) {
-						?><br /><font color="red"><?php echo $url_error ?></font><?php
-					}
-					?>
-				</td>
-			</tr>
-			<?php
-			if ($OPT["allow_images"]) {
-				?>
-				<tr valign="top">
-					<td>Image<br /><i>(optional)</i></td>
-					<td>
-						<table border="0" cellpadding="2" cellspacing="2">
-							<?php
-							if ($image_filename == "") {
-								?>
-								<tr>
-									<td><input type="radio" name="image" value="none" CHECKED /></td>
-									<td>No image.</td>
-								</tr>
-								<tr valign="top">
-									<td rowspan="2"><input type="radio" name="image" value="upload" /></td>
-									<td>Upload image:</td>
-								</tr>
-								<tr valign="top">
-									<td><input type="file" name="imagefile" /></td>
-								</tr>
-								<?php
-							}
-							else {
-								?>
-								<tr>
-									<td><input type="radio" name="image" value="remove" /></td>
-									<td>Remove existing image.</td>
-								</tr>
-								<tr>
-									<td><input type="radio" name="image" value="keep" CHECKED /></td>
-									<td>Keep existing image.</td>
-								</tr>
-								<tr valign="top">
-									<td rowspan="2"><input type="radio" name="image" value="replace" /></td>
-									<td>Replace existing image:</td>
-								</tr>
-								<tr valign="top">
-									<td><input type="file" name="imagefile" /></td>
-								</tr>
-								<?php
-							}
-							?>
-						</table>
-					</td>
-				</tr>
-				<?php
-			}
-			?>
-			<tr valign="top">
-				<td>Comment<br /><i>(optional)</i></td>
-				<td>
-					<textarea name="comment" rows="5" cols="40"><?php echo htmlspecialchars(stripslashes($comment)); ?></textarea>
-				</td>
-			</tr>
-		</table>
-	</div>
-	<p>
-		<div align="center">
-			<input type="submit" value="Save"/>
-			<input type="button" value="Cancel" onClick="document.location.href='index.php';">
-		</div>
-	</p>
-</form>
-</body>
-</html>
+mysql_free_result($rs);
+
+$query = "SELECT ranking, title FROM {$OPT["table_prefix"]}ranks ORDER BY rankorder";
+$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+$ranks = array();
+while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+	$ranks[] = $row;
+}
+
+define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
+require_once(SMARTY_DIR . 'Smarty.class.php');
+$smarty = new Smarty();
+$smarty->assign('userid', $userid);
+$smarty->assign('action', $action);
+$smarty->assign('haserror', $haserror);
+if (isset($_REQUEST['itemid'])) {
+	$smarty->assign('itemid', (int) $_REQUEST['itemid']);
+}
+$smarty->assign('description', $description);
+if (isset($descripton_error)) {
+	$smarty->assign('description_error', $description_error);
+}
+$smarty->assign('category', $category);
+if (isset($category_error)) {
+	$smarty->assign('category_error', $category_error);
+}
+$smarty->assign('price', $price);
+if (isset($price_error)) {
+	$smarty->assign('price_error', $price_error);
+}
+$smarty->assign('source', $source);
+if (isset($source_error)) {
+	$smarty->assign('source_error', $source_error);
+}
+$smarty->assign('ranking', $ranking);
+if (isset($ranking_error)) {
+	$smarty->assign('ranking_error', $ranking_error);
+}
+$smarty->assign('quantity', $quantity);
+if (isset($quantity_error)) {
+	$smarty->assign('quantity_error', $quantity_error);
+}
+$smarty->assign('url', $url);
+if (isset($url_error)) {
+	$smarty->assign('url_error', $url_error);
+}
+$smarty->assign('image_filename', $image_filename);
+$smarty->assign('comment', $comment);
+$smarty->assign('categories', $categories);
+$smarty->assign('ranks', $ranks);
+$smarty->assign('opt', $OPT);
+$smarty->display('item.tpl');
