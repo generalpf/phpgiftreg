@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 <html lang="en">
 <head>
 	<title>Gift Registry - Shopping List for {$ufullname}</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
     <script language="JavaScript" type="text/javascript">
@@ -26,9 +27,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		}
 	</script>
 </head>
-<body data-offset="80" data-target=".subnav" data-spy="scroll">
+<body>
 	<div class="container">
-	{if $message != ''}
+	{if isset($message)}
 		<div class="row">
 			<div class="span12">
 				<div class="alert alert-success">
