@@ -31,15 +31,15 @@ if (!empty($_GET["message"])) {
 }
 
 /* if we've got `page' on the query string, set the session page indicator. */
-if (!empty($_GET["page"])) {
-	$_SESSION["page"] = $_GET["page"];
-	$page = $_GET["page"];
+if (isset($_GET["offset"])) {
+	$_SESSION["offset"] = $_GET["offset"];
+	$offset = $_GET["offset"];
 }
-else if (isset($_SESSION["page"])) {
-	$page = $_SESSION["page"];
+else if (isset($_SESSION["offset"])) {
+	$offset = $_SESSION["offset"];
 }
 else {
-	$page = 1;
+	$offset = 0;
 }
 
 if (!empty($_GET["action"])) {
@@ -99,8 +99,13 @@ else {
 }
 $query = "SELECT itemid, description, c.category, price, url, rendered, comment, image_filename FROM {$OPT["table_prefix"]}items i LEFT OUTER JOIN {$OPT["table_prefix"]}categories c ON c.categoryid = i.category LEFT OUTER JOIN {$OPT["table_prefix"]}ranks r ON r.ranking = i.ranking WHERE userid = " . $userid . " ORDER BY $sortby";
 $rs = mysql_query($query) or die("Could not query: " . mysql_error());
+$myitems_count = mysql_num_rows($rs);
 $myitems = array();
-while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+for ($i = 0; $i < $offset; $i++) {
+	$row = mysql_fetch_array($rs, MYSQL_ASSOC);
+}
+$i = 0;
+while ($i++ < $OPT["items_per_page"] && $row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
 	$row['price'] = formatPrice($row['price']);
 	$myitems[] = $row;
 }
@@ -222,7 +227,7 @@ if ($OPT["shop_requires_approval"]) {
 	while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
 		$pending[] = $row;
 	}
-	mysql_free_result($pending);
+	mysql_free_result($rs);
 }
 
 if (($_SESSION["admin"] == 1) && $OPT["newuser_requires_approval"]) {
@@ -236,7 +241,7 @@ if (($_SESSION["admin"] == 1) && $OPT["newuser_requires_approval"]) {
 	while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
 		$approval[] = $row;
 	}
-	mysql_free_result($approval);
+	mysql_free_result($rs);
 }
 
 define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
@@ -247,6 +252,8 @@ if (isset($message)) {
 	$smarty->assign('message', $message);
 }
 $smarty->assign('myitems', $myitems);
+$smarty->assign('myitems_count', $myitems_count);
+$smarty->assign('offset', $offset);
 $smarty->assign('shoppees', $shoppees);
 $smarty->assign('prospects', $prospects);
 $smarty->assign('messages', $messages);

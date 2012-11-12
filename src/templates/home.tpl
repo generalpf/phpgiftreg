@@ -30,10 +30,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		}
 	</script>
 </head>
-<body data-offset="80" data-target=".subnav" data-spy="scroll">
+<body>
 	<div class="navbar navbar-fixed-top">
 		<div class="navbar-inner">
 			<div class="container">
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</a>
 				<a class="brand" href="/">Gift Registry</a>
 				<div id="main-menu" class="nav-collapse">
 					<ul id="main-menu-left" class="nav">
@@ -62,7 +67,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 			</div>
 		</div>
 	</div>
-	<div class="container">
+	<div class="container" style="padding-top: 60px;">
 	{if isset($message)}
 		<section id="message">
 		<div class="row">
@@ -130,6 +135,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 				{/foreach}
 			</tbody>
 		</table>
+		{if $myitems_count > $opt.items_per_page}
+			<div class="pagination">
+				<ul>
+					{if $offset >= $opt.items_per_page}
+						<li><a href="index.php?offset={$offset - $opt.items_per_page}">&lt;</a></li>
+					{/if}
+					{for $i=0 to $myitems_count step $opt.items_per_page}
+						<li {if $offset >= $i && $offset < $i + $opt.items_per_page}class="active"{/if}><a href="index.php?offset={$i}">{$i + $opt.items_per_page}</a></li>
+					{/for}
+					{if $offset + $opt.items_per_page < $myitems_count}
+						<li><a href="index.php?offset={$offset + $opt.items_per_page}">&gt;</a></li>
+					{/if}
+				</ul>
+			</div>
+		{/if}
 		<h5><a href="item.php?action=add">Add a new item</a></h5>
 		</div>
 	</section>
