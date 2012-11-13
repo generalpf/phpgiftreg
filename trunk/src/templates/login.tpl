@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 <body>
 	<div class="container">
 		<div class="row">
-			<div class="span6 offset3">
+			<div class="span8 offset2">
 		<form name="login" method="post" action="login.php" class="well form-horizontal">
 			<fieldset>
 				<legend>Gift Registry</legend>
@@ -52,12 +52,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 			</div>
 		</div>
 		<div class="row">
-			<div class="span3 offset3">
+			<div class="span4 offset2">
 				<div class="well">
 					<a href="signup.php">Need an account?</a>
 				</div>
 			</div>
-			<div class="span3">
+			<div class="span4">
 				<div class="well">
 					<a href="forgot.php">Forgot your password?</a>
 				</div>

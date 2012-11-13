@@ -74,66 +74,26 @@ else if ($action == "receive") {
 	header("Location: " . getFullPath("index.php?message=Item+marked+as+received."));
 	exit;
 }
-echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n";
-?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<title>Gift Registry - Receive an Item</title>
-<link href="styles.css" type="text/css" rel="stylesheet" />
-</head>
-<body>
-<form name="receiver" method="get" action="receive.php">
-	<input type="hidden" name="action" value="receive">
-	<input type="hidden" name="itemid" value="<?php echo $_GET["itemid"]; ?>">
-	<div align="center">
-		<TABLE class="partbox">
-			<TR valign="top">
-				<TD>
-					<b>Select the buyer</b>
-				</TD>
-				<TD>
-					<?php
-					$query = "SELECT u.userid, u.fullname " .
-									"FROM {$OPT["table_prefix"]}shoppers s " .
-									"INNER JOIN {$OPT["table_prefix"]}users u ON u.userid = s.shopper " .
-									"WHERE s.mayshopfor = " . $userid . " " .
-									"AND pending = 0 " .
-									"ORDER BY u.fullname";
-					$buyers = mysql_query($query) or die("Could not query: " . mysql_error());
-					?>
-					<select name="buyer" size="<?php echo mysql_num_rows($buyers) ?>">
-						<?php
-						while ($row = mysql_fetch_array($buyers,MYSQL_ASSOC)) {
-							?>
-							<option value="<?php echo $row["userid"] ?>"><?php echo $row["fullname"] ?></option>
-							<?php
-						}
-						?>
-					</select>
-				</TD>
-			</TR>
-			<tr valign="top">
-				<td>
-					<b>Quantity received<br />(maximum of <?php echo $quantity; ?>)</b>
-				</td>
-				<td>
-					<input type="text" name="quantity" value="1" size="3" maxlength="3">
-				</td>
-			</tr>
-			<tr>
-				<td colspan="2">
-					<i>Once you have received all of an item, it will be deleted.</i>
-				</td>
-			</tr>
-		</TABLE>
-	</div>
-	<p>
-		<div align="center">
-			<input type="submit" value="Receive Item"/>
-			<input type="button" value="Cancel" onClick="document.location.href='index.php';">
-		</div>
-	</p>
-</form>
-</body>
-</html>
+
+$query = "SELECT u.userid, u.fullname " .
+			"FROM {$OPT["table_prefix"]}shoppers s " .
+			"INNER JOIN {$OPT["table_prefix"]}users u ON u.userid = s.shopper " .
+			"WHERE s.mayshopfor = " . $userid . " " .
+				"AND pending = 0 " .
+			"ORDER BY u.fullname";
+$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+$buyers = array();
+while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+	$buyers[] = $row;
+}
+mysql_free_result($buyers);
+
+define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
+require_once(SMARTY_DIR . 'Smarty.class.php');
+$smarty = new Smarty();
+$smarty->assign('buyers', $buyers);
+$smarty->assign('quantity', $quantity);
+$smarty->assign('itemid', $itemid);
+$smarty->assign('userid', $userid);
+$smarty->assign('opt', $OPT);
+$smarty->display('receive.tpl');

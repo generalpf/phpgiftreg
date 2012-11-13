@@ -47,6 +47,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					</ul>
 					<ul id="main-menu-right" class="nav pull-right">
 						<li><a href="profile.php">Update Profile</a></li>
+						<li><a href="event.php">Manage Events</a></li>
 						{if $isadmin}
 							<li class="dropdown">
 								<a class="dropdown-toggle" href="#" data-toggle="dropdown">
@@ -69,13 +70,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	</div>
 	<div class="container" style="padding-top: 60px;">
 	{if isset($message)}
-		<section id="message">
 		<div class="row">
 			<div class="span12">
 				<div class="alert alert-block">{$message|escape:'htmlall'}</div>
 			</div>
 		</div>
-		</section>
 	{/if}
 	{if $opt.show_helptext}
 		<section id="help">
