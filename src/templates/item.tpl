@@ -38,14 +38,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 				<li>The quantity field indicates the number of that item that you want.  Once that many are bought or reserved, no more will be available.  If you have no limit on how many you want, enter 999 (for example).</li>
 			{/if}
 		</ul>
+				</div>
+			</div>
+		</div>
 	{/if}
 	<div class="row">
-		<div class="class6 offset3">
+		<div class="span8 offset2">
 			<form name="item" method="POST" action="item.php" enctype="multipart/form-data" class="well form-horizontal">
 				<fieldset>
-					<legend>Add/Edit Item</legend>
+					<legend>{if $action == 'edit' || (isset($haserror) && $action == 'update')}Edit Item{else}Add Item{/if}</legend>
 					{if $action == 'edit' || (isset($haserror) && $action == 'update')}
-						<input type="hidden" name="itemid" value="<?php echo (int) $_REQUEST["itemid"]; ?>">
+						<input type="hidden" name="itemid" value="{$itemid}">
 						<input type="hidden" name="action" value="update">
 					{elseif $action == "add" || (isset($haserror) && $action == 'insert')}
 						<input type="hidden" name="action" value="insert">
@@ -62,10 +65,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<div class="control-group {if isset($category_error)}warning{/if}">
 						<label class="control-label" for="category">Category</label>
 						<div class="controls">
-							<select name="category" class="input-xlarge">
+							<select id="category" name="category" class="input-xlarge">
 								<option value="" {if $category == NULL}SELECTED{/if}>Uncategorized</option>
 								{foreach from=$categories item=row}
-									<option value="$row.categoryid" {if $row.categoryid == $category}SELECTED{/if}>{$row.category|escape:'htmlall'}</option>
+									<option value="{$row.categoryid}" {if $row.categoryid == $category}SELECTED{/if}>{$row.category|escape:'htmlall'}</option>
 								{/foreach}
 							</select>
 							{if isset($category_error)}
@@ -85,7 +88,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<div class="control-group {if isset($source_error)}warning{/if}">
 						<label class="control-label" for="source">Store/Retailer</label>
 						<div class="controls">
-							<input id="source" name="source" type="text" value="{$source|escape:'htmlall'}" class="input-xlarge" maxlength="255" size="50">
+							<input id="source" name="source" type="text" value="{$source|escape:'htmlall'}" class="input-xlarge" maxlength="255" size="50" placeholder="Source">
 							{if isset($source_error)}
 								<span class="help-inline">{$source_error}</span>
 							{/if}
@@ -94,9 +97,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<div class="control-group {if isset($ranking_error)}warning{/if}">
 						<label class="control-label" for="ranking">Ranking</label>
 						<div class="controls">
-							<select id="ranking" name="ranking" size="{$ranks_count}" class="input-xlarge">
+							<select id="ranking" name="ranking" multiple="multiple" class="input-xlarge">
 								{foreach from=$ranks item=row}
-									<option value="$row.ranking" {if $row.ranking == $ranking}SELECTED{/if}>{$row.title}</option>
+									<option value="{$row.ranking}" {if $row.ranking == $ranking}SELECTED{/if}>{$row.title}</option>
 								{/foreach}
 							</select>
 							{if isset($ranking_error)}
@@ -125,7 +128,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 								<span class="help-inline">{$url_error}</span>
 							{/if}
 						</div>
-					{/div>
+					</div>
 					{if $opt.allow_images}
 						<div class="control-group">
 							<label class="control-label" for="image">Image (optional)</label>
@@ -151,7 +154,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<div class="control-group">
 						<label class="control-label" for="comment">Comment</label>
 						<div class="controls">
-							<textarea id="comment" name="comment" class="input-xlarge" rows="5" cols="40">{$comment|escape:'htmlall'}</textarea>
+							<textarea id="comment" name="comment" class="input-xlarge" rows="2" cols="40">{$comment|escape:'htmlall'}</textarea>
 						</div>
 					</div>
 					<div class="form-actions">
