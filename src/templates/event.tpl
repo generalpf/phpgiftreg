@@ -134,7 +134,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					{/if}
 					<div class="form-actions">
 						<button type="submit" class="btn btn-primary">{if $action == "" || $action == "insert"}Add{else}Update{/if}</button>
-						<button type="button" onClick="document.location.href='event.php';">Cancel</button>
+						<button type="button" class="btn" onClick="document.location.href='event.php';">Cancel</button>
 					</div>
 				</fieldset>
 			</form>
