@@ -210,6 +210,7 @@ $smarty->assign('ufullname', $ufullname);
 $smarty->assign('shopfor', $shopfor);
 $smarty->assign('shoprows', $shoprows);
 $smarty->assign('userid', $userid);
+$smarty->assign('isadmin', $_SESSION["admin"]);
 $smarty->assign('opt', $OPT);
 $smarty->display('shop.tpl');
 ?>

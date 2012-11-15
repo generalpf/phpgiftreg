@@ -48,7 +48,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	</script>
 	</head>
 <body>
-	<div class="container">
+	{include file='navbar.tpl' isadmin=$isadmin}
+
+	<div class="container" style="padding-top: 60px;">
 		<div class="row">
 			<div class="span8 offset2">
 <form name="changepwd" action="profile.php" method="POST" onSubmit="return confirmPassword();" class="well form-horizontal">

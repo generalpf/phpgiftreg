@@ -23,7 +23,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 </head>
 <body>
-	<div class="container">
+	{include file='navbar.tpl' isadmin=$isadmin}
+
+	<div class="container" style="padding-top: 60px;">
 	{if isset($message)}
 		<div class="row">
 			<div class="span12">
@@ -98,7 +100,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<div class="control-group {if isset($description_error)}warning{/if}">
 						<label class="control-label" for="description">Description</label>
 						<div class="controls">
-							<input id="description" name="description" type="text" value="{$description|escape:'htmlall'}" class="input-xlarge" maxlength="255">
+							<input id="description" name="description" type="text" value="{$description|escape:'htmlall'}" class="input-xlarge" maxlength="255" placeholder="Description">
 							{if isset($description_error)}
 								<span class="help-inline">{$description_error}</span>
 							{/if}
@@ -107,7 +109,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<div class="control-group {if isset($eventdate_error)}warning{/if}">
 						<label class="control-label" for="eventdate">Event date</label>
 						<div class="controls">
-							<input id="eventdate" name="eventdate" type="text" value="{$eventdate|escape:'htmlall'}" class="input-xlarge">
+							<input id="eventdate" name="eventdate" type="text" value="{$eventdate|escape:'htmlall'}" class="input-xlarge" placeholder="mm/dd/yyyy">
 							<p class="help-block">mm/dd/yyyy</p>
 							{if isset($eventdate_error)}
 								<span class="help-inline">{$eventdate_error}</span>

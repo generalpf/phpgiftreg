@@ -31,43 +31,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	</script>
 </head>
 <body>
-	<div class="navbar navbar-fixed-top">
-		<div class="navbar-inner">
-			<div class="container">
-				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</a>
-				<a class="brand" href="/">Gift Registry</a>
-				<div id="main-menu" class="nav-collapse">
-					<ul id="main-menu-left" class="nav">
-						<li><a href="shoplist.php">My Shopping List</a></li>
-						<li><a href="mylist.php">My Items (printable)</a></li>
-					</ul>
-					<ul id="main-menu-right" class="nav pull-right">
-						<li><a href="profile.php">Update Profile</a></li>
-						<li><a href="event.php">Manage Events</a></li>
-						{if $isadmin}
-							<li class="dropdown">
-								<a class="dropdown-toggle" href="#" data-toggle="dropdown">
-									Admin
-									<b class="caret"></b>
-								</a>
-								<ul class="dropdown-menu">
-									<li><a href="users.php">Manage Users</a></li>
-									<li><a href="families.php">Manage Families</a></li>
-									<li><a href="categories.php">Manage Categories</a></li>
-									<li><a href="ranks.php">Manage Ranks</a></li>
-								</ul>
-							</li>
-						{/if}
-						<li><a href="login.php?action=logout">Logout</a></li>
-					</ul>
-				</div>
-			</div>
-		</div>
-	</div>
+	{include file='navbar.tpl'}
+
 	<div class="container" style="padding-top: 60px;">
 	{if isset($message)}
 		<div class="row">
