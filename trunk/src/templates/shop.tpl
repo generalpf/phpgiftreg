@@ -66,7 +66,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<div class="row">
 		<div class="span12">
 			<div class="well">
-		<table>
+		<table class="table table-bordered table-striped">
 			<thead>
 			<tr>
 				<th class="colheader"><a href="shop.php?shopfor={$shopfor}&sort=ranking">Rank</a></th>
