@@ -71,14 +71,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		<table class="table table-bordered table-striped">
 			<thead>
 			<tr>
-				<th class="colheader"><a href="shop.php?shopfor={$shopfor}&sort=ranking">Rank</a></th>
-				<th class="colheader"><a href="shop.php?shopfor={$shopfor}&sort=description">Description</a></th>
-				<th class="colheader"><a href="shop.php?shopfor={$shopfor}&sort=category">Category</a></th>
-				<th class="rcolheader"><a href="shop.php?shopfor={$shopfor}&sort=price">Price</a></th>
-				<th class="colheader"><a href="shop.php?shopfor={$shopfor}&sort=source">Store/Location</a></th>
-				<th class="colheader"><a href="shop.php?shopfor={$shopfor}&sort=status">Status</a></th>
-				<th class="rcolheader">&nbsp;</th>
-				<th class="rcolheader">&nbsp;</th>
+				<th><a href="shop.php?shopfor={$shopfor}&sort=ranking">Rank</a></th>
+				<th><a href="shop.php?shopfor={$shopfor}&sort=description">Description</a></th>
+				<th><a href="shop.php?shopfor={$shopfor}&sort=category">Category</a></th>
+				<th><a href="shop.php?shopfor={$shopfor}&sort=price">Price</a></th>
+				<th><a href="shop.php?shopfor={$shopfor}&sort=source">Store/Location</a></th>
+				<th><a href="shop.php?shopfor={$shopfor}&sort=status">Status</a></th>
+				<th>&nbsp;</th>
 			</tr>
 			</thead>
 			<tbody>
@@ -134,7 +133,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 							{if $row.ibought > 0}
 								<a href="shop.php?action=return&itemid={$row.itemid}&shopfor={$shopfor}"><img alt="Return Item" title="Return Item" src="images/run_exc.gif" border="0" /></a>
 							{/if}
-						</td>
+						{* </td> *}
 					{else}
 						{if $row.rfullname == '' && $row.bfullname == ''}
 							<td>
@@ -142,7 +141,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 							</td>
 							<td nowrap align="right">
 								<a href="shop.php?action=reserve&itemid={$row.itemid}&shopfor={$shopfor}"><img alt="Reserve Item" title="Reserve Item" src="images/lock_co.gif" border="0" /></a>&nbsp;<a href="shop.php?action=purchase&itemid={$row.itemid}&shopfor={$shopfor}"><img alt="Purchase Item" title="Purchase Item" src="images/step_done.gif" border="0" /></a>
-							</td>
+							{* </td> *}
 						{elseif $row.rfullname != ''}
 							{if $row.reservedid == $userid}
 								<td>
@@ -150,7 +149,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 								</td>
 								<td align="right">
 									<a href="shop.php?action=release&itemid={$row.itemid}&shopfor={$shopfor}"><img alt="Release Item" title="Release Item" src="images/unlock_co.gif" border="0" /></a>&nbsp;<a href="shop.php?action=purchase&itemid={$row.itemid}&shopfor={$shopfor}"><img alt="Purchase Item" title="Purchase Item" src="images/step_done.gif" border="0" /></a>
-								</td>
+								{* </td> *}
 							{else}
 								<td>
 									{if $opt.anonymous_purchasing}
@@ -159,7 +158,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 										<i>Reserved by {$row.rfullname|escape:'htmlall'}.</i>
 									{/if}
 								</td>
-								<td>&nbsp;</td>
+								<td>
+								{* </td> *}
 							{/if}
 						{elseif $row.bfullname != ''}
 							{if $row.boughtid == $userid}
@@ -168,23 +168,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 								</td>
 								<td align="right">
 									<a href="shop.php?action=return&itemid={$row.itemid}&shopfor={$shopfor}"><img alt="Return Item" title="Return Item" src="images/run_exc.gif" border="0" /></a>
-								</td>
+								{* </td> *}
 							{else}
 								{if $opt.anonymous_purchasing}
 									<td>
 										<i>Bought.</i>
 									</td>
-									<td>&nbsp;</td>
+									<td>
+									{* </td> *}
 								{else}
 									<td>
 										<i>Bought by {$row.bfullname|escape:'htmlall'}.</i>
 									</td>
-									<td>&nbsp;</td>
+									<td>
+									{* </td> *}
 								{/if}
 							{/if}
 						{/if}
 					{/if}
-					<td>
+					{* <td> *}
 						<a href="shop.php?action=copy&itemid={$row.itemid}&shopfor={$shopfor}"><img alt="I Want This Too" title="I Want This Too" src="images/toolbar_replace.gif" border="0" /></a>
 					</td>
 				</tr>

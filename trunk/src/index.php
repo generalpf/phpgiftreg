@@ -122,7 +122,7 @@ $query = "SELECT u.userid, u.fullname, u.comment, u.list_stamp, COUNT(i.itemid) 
 $rs = mysql_query($query) or die("Could not query: " . mysql_error());
 $shoppees = array();
 while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
-	$row['list_stamp'] = ($row['list_stamp == 0'] ? '-' : strftime("%B %d, %Y", strtotime($row['list_stamp'])));
+	$row['list_stamp'] = ($row['list_stamp == 0'] ? '-' : strftime("%m/%d/%Y", strtotime($row['list_stamp'])));
 	$shoppees[] = $row;
 }
 mysql_free_result($rs);
@@ -197,7 +197,7 @@ while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
 			'fullname' => $event_fullname,
 			'eventname' => $row['description'],
 			'daysleft' => $days_left,
-			'date' => strftime("%B %d, %Y", $event_date)
+			'date' => strftime("%m/%d/%Y", $event_date)
 		);
 		$events[] = $thisevent;
 	}
