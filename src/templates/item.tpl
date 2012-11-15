@@ -23,7 +23,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 </head>
 <body>
-	<div class="container">
+	{include file='navbar.tpl' isadmin=$isadmin}
+
+	<div class="container" style="padding-top: 60px;">
 	{if $opt.show_helptext}
 		<div class="row">
 			<div class="span12">
@@ -56,7 +58,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<div class="control-group {if isset($description_error)}warning{/if}">
 						<label class="control-label" for="description">Description</label>
 						<div class="controls">
-							<input id="description" name="description" type="text" value="{$description|escape:'htmlall'}" class="input-xlarge" placeholder="Description" maxlength="255" size="50">
+							<input id="description" name="description" type="text" value="{$description|escape:'htmlall'}" class="input-xlarge" placeholder="Description" maxlength="255">
 							{if isset($description_error)}
 								<span class="help-inline">{$description_error}</span>
 							{/if}
@@ -88,7 +90,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<div class="control-group {if isset($source_error)}warning{/if}">
 						<label class="control-label" for="source">Store/Retailer</label>
 						<div class="controls">
-							<input id="source" name="source" type="text" value="{$source|escape:'htmlall'}" class="input-xlarge" maxlength="255" size="50" placeholder="Source">
+							<input id="source" name="source" type="text" value="{$source|escape:'htmlall'}" class="input-xlarge" maxlength="255" placeholder="Source">
 							{if isset($source_error)}
 								<span class="help-inline">{$source_error}</span>
 							{/if}
@@ -111,7 +113,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						<div class="control-group {if isset($quantity_error)}warning{/if}">
 							<label class="control-label" for="quantity">Quantity</label>
 							<div class="controls">
-								<input id="quantity" name="quantity" type="text" value="{$quantity|escape:'htmlall'}" class="input-xlarge" maxlength="3" size="3">
+								<input id="quantity" name="quantity" type="text" value="{$quantity|escape:'htmlall'}" class="input-xlarge" maxlength="3">
 								{if isset($quantity_error)}
 									<span class="help-inline">{$quantity_error}</span>
 								{/if}
@@ -123,7 +125,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<div class="control-group {if isset($url_error)}warning{/if}">
 						<label class="control-label" for="url">URL (optional)</label>
 						<div class="controls">
-							<input id="url" name="url" type="text" value="{$url|escape:'htmlall'}" class="input-xlarge" maxlength="255" size="50">
+							<input id="url" name="url" type="text" value="{$url|escape:'htmlall'}" class="input-xlarge" maxlength="255">
 							{if isset($url_error)}
 								<span class="help-inline">{$url_error}</span>
 							{/if}

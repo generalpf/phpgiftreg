@@ -44,7 +44,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		<div class="control-group">
 			<label class="control-label" for="quantity">Quantity received (maximum of {$quantity})</label>
 			<div class="controls">
-				<input type="text" id="quantity" name="quantity" value="1" size="3" maxlength="3">
+				<input type="text" id="quantity" name="quantity" value="1" maxlength="3">
 				<p class="help-block">Once you have received all of an item, it will be deleted.</p>
 			</div>
 		</div>

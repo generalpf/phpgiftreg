@@ -28,7 +28,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	</script>
 </head>
 <body>
-	<div class="container">
+	{include file='navbar.tpl' isadmin=$isadmin}
+
+	<div class="container" style="padding-top: 60px;">
 	{if isset($message)}
 		<div class="row">
 			<div class="span12">
@@ -39,7 +41,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		</div>
 	{/if}
 	<div class="row">
-		<h1>Gift Registry - Shopping List for {$ufullname|escape:'htmlall'}</h1>
+		<h1>Shopping List for {$ufullname|escape:'htmlall'}</h1>
 	</div>
 	{if $opt.show_helptext}
 		<div class="row">

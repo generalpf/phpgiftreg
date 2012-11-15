@@ -253,5 +253,7 @@ $smarty->assign('image_filename', $image_filename);
 $smarty->assign('comment', $comment);
 $smarty->assign('categories', $categories);
 $smarty->assign('ranks', $ranks);
+$smarty->assign('isadmin', $_SESSION["admin"]);
 $smarty->assign('opt', $OPT);
 $smarty->display('item.tpl');
+?>
