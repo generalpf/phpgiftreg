@@ -23,7 +23,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 </head>
 <body>
-	<div class="container">
+	{include file='navbar.tpl' isadmin=$isadmin}
+
+	<div class="container" style="padding-top: 60px;">
 		<div class="row">
 			<div class="span8 offset2">
 <form name="receiver" method="get" action="receive.php" class="well form-horizontal">
@@ -50,12 +52,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		</div>
 		<div class="form-actions">
 			<button type="submit" class="btn btn-primary">Receive Item</button>
-			<button type="button" onClick="document.location.href='index.php';">Cancel</button>
+			<button type="button" class="btn" onClick="document.location.href='index.php';">Cancel</button>
 		</div>
 	</fieldset>
 </form>
 			</div>
 		</div>
 	</div>
+
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>

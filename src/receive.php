@@ -95,5 +95,7 @@ $smarty->assign('buyers', $buyers);
 $smarty->assign('quantity', $quantity);
 $smarty->assign('itemid', $itemid);
 $smarty->assign('userid', $userid);
+$smarty->assign('isadmin', $_SESSION["admin"]);
 $smarty->assign('opt', $OPT);
 $smarty->display('receive.tpl');
+?>
