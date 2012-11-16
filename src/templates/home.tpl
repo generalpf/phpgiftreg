@@ -34,12 +34,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 			return window.confirm("Are you sure you want to delete " + desc + "?");
 		}
 		$(document).ready(function() {
-			$('a.lightbox').lightBox({
+			$('a[rel=lightbox]').lightBox({
 				imageLoading: 'lightbox/images/lightbox-ico-loading.gif',
 				imageBtnClose: 'lightbox/images/lightbox-btn-close.gif',
 				imageBtnPrev: 'lightbox/images/lightbox-btn-prev.gif',
 				imageBtnNext: 'lightbox/images/lightbox-btn-next.gif'
 			});
+			$('a[rel=popover]').popover();
 		});
 	</script>
 </head>
@@ -90,14 +91,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<tr valign="top">
 						<td>
 							{$row.description|escape:'htmlall'}
+							 {if $row.comment != ''}
+								<a class="btn btn-small" rel="popover" href="#" data-placement="right" data-original-title="Comment" data-content="{$row.comment|escape:'htmlall'}">...</a>
+							{/if}
 							{if $row.url != ''}
 								<a href="{$row.url|escape:'htmlall'}" target="_blank"><img src="images/links_view.gif" border="0" alt="URL" title="URL"></a>
 							{/if}
-							{if $row.comment != ''}
-								<img src="images/topic.gif" border="0" alt="{$row.comment|escape:'htmlall'}" />
-							{/if}
 							{if $row.image_filename != '' && $opt.allow_images}
-								<a class="lightbox" href="{$opt.image_subdir}/{$row.image_filename}"><img src="images/image_obj.gif" border="0" alt="Image" /></a>
+								<a rel="lightbox" href="{$opt.image_subdir}/{$row.image_filename}"><img src="images/image_obj.gif" border="0" alt="Image" /></a>
 							{/if}
 						</td>
 						<td nowrap>{$row.rendered}</td>
