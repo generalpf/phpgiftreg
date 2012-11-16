@@ -47,59 +47,27 @@ if (!empty($_GET["action"])) {
 	}
 }
 
-echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n";
+$query = "SELECT u.userid, u.fullname " .
+			"FROM {$OPT["table_prefix"]}shoppers s " .
+			"INNER JOIN {$OPT["table_prefix"]}users u ON u.userid = s.mayshopfor " .
+			"WHERE s.shopper = " . $userid . " " .
+				"AND pending = 0 " .
+			"ORDER BY u.fullname";
+$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+$recipients = array();
+while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+	$recipients[] = $row;
+}
+$rcount = mysql_num_rows($rs);
+mysql_free_result($rs);
+
+define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
+require_once(SMARTY_DIR . 'Smarty.class.php');
+$smarty = new Smarty();
+$smarty->assign('recipients', $recipients);
+$smarty->assign('rcount', $rcount);
+$smarty->assign('userid', $userid);
+$smarty->assign('isadmin', $_SESSION["admin"]);
+$smarty->assign('opt', $OPT);
+$smarty->display('message.tpl');
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<title>Gift Registry - Compose a Message</title>
-<link href="styles.css" type="text/css" rel="stylesheet" />
-</head>
-<body>
-<form name="message" method="get" action="message.php">
-	<input type="hidden" name="action" value="send">
-	<div align="center">
-		<TABLE class="partbox">
-			<TR valign="top">
-				<TD>
-					<b>Recipients</b><br />
-					<i>(Hold CTRL while clicking to<br />select multiple names.)</i>
-				</TD>
-				<TD>
-					<?php
-					$query = "SELECT u.userid, u.fullname " .
-									"FROM {$OPT["table_prefix"]}shoppers s " .
-									"INNER JOIN {$OPT["table_prefix"]}users u ON u.userid = s.mayshopfor " .
-									"WHERE s.shopper = " . $userid . " " .
-									"AND pending = 0 " .
-									"ORDER BY u.fullname";
-					$recipients = mysql_query($query) or die("Could not query: " . mysql_error());
-					?>
-					<select name="recipients[]" size="<?php echo mysql_num_rows($recipients) ?>" MULTIPLE>
-						<?php
-						while ($row = mysql_fetch_array($recipients,MYSQL_ASSOC)) {
-							?>
-							<option value="<?php echo $row["userid"] ?>"><?php echo $row["fullname"] ?></option>
-							<?php
-						}
-						?>
-					</select>
-				</TD>
-			</TR>
-			<TR valign="top">
-				<TD colspan="2">
-					<b>Message</b><br />
-					<textarea name="msg" rows="5" cols="40"></textarea>
-				</TD>
-			</TR>
-		</TABLE>
-	</div>
-	<p>
-		<div align="center">
-			<input type="submit" value="Send Message"/>
-			<input type="button" value="Cancel" onClick="document.location.href='index.php';">
-		</div>
-	</p>
-</form>
-</body>
-</html>
