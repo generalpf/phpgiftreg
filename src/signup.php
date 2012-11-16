@@ -17,8 +17,6 @@ include("config.php");
 include("db.php");
 include("funcLib.php");
 
-$error = "";
-
 if (isset($_POST["action"])) {
 	if ($_POST["action"] == "signup") {
 		$username = $_POST["username"];
@@ -93,141 +91,28 @@ if (isset($_POST["action"])) {
 		
 	}
 }
-echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n";
-?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<title>Gift Registry - Sign Up</title>
-<link href="styles.css" type="text/css" rel="stylesheet" />
-<script language="JavaScript" type="text/javascript">
-	function validateSignup() {
-		field = document.signup.username;
-		if (field == null || field == undefined || !field.value.match("\\S")) {
-			alert("You must supply a username.");
-			field.focus();
-			return false;
-		}
-		
-		field = document.signup.fullname;
-		if (field == null || field == undefined || !field.value.match("\\S")) {
-			alert("You must supply your full name.");
-			field.focus();
-			return false;
-		}
-		
-		field = document.signup.email;
-		if (!field.value.match("\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*")) {
-			alert("The e-mail address '" + field.value + "' is not a valid address.");
-			field.focus();
-			return false;
-		}
-		
-		return true;
-	}
-</script>
-</head>
-<body>
-<?php
-if (isset($_POST["action"]) && $_POST["action"] == "signup" && $error == "") {
-	// success!
-	?>
-	<p>
-		Thank you for signing up.
-	</p>
-	<?php
-	if ($OPT["newuser_requires_approval"])
-		echo "<p>The administrators have been informed of your request and you will receive an e-mail once they've made a decision.</p>";
-	else
-		echo "<p>Shortly, you will receive an e-mail with your initial password.</p>";
-	echo "<p>Once you've received your password, click <a href=\"login.php\">here</a> to login.</p>";
+						
+$query = "SELECT familyid, familyname FROM {$OPT["table_prefix"]}families ORDER BY familyname";
+$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+$families = array();
+while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+	$families[] = $row;
 }
-else {
-	?>
-	<form name="signup" method="post" action="signup.php">	
-		<input type="hidden" name="action" value="signup">
-		<div align="center">
-			<table cellpadding="3" class="partbox" width="50%">
-				<tr>
-					<td colspan="2" class="partboxtitle" align="center">Sign Up for the Gift Registry</td>
-				</tr>
-				<tr>
-					<td colspan="2">
-						<p>
-							Complete the form below and click Submit.  
-						</p>
-						<?php
-						if ($OPT["newuser_requires_approval"]) {
-							?>
-							<p>
-								The list administrators will be notified of your request by e-mail and will approve or decline your request.
-							</p>
-							<p>
-								If the e-mail address you supply is valid, you will be notified once a decision is made.
-							</p>
-							<?php
-						}
-						else {
-							?>
-							<p>
-								If the e-mail address you supply is valid, 
-								you will shortly receive an e-mail with your
-								initial password.
-							</p>
-							<?php
-						}
-						if ($error != "")
-							echo "<div class=\"message\">" . $error . "</div>";
-						?>
-					</td>
-				</tr>
-				<tr>
-					<td width="25%">Username</td>
-					<td>
-						<input name="username" size="20" maxlength="20" type="text" value="<?php if (isset($_POST["username"])) echo htmlspecialchars(stripslashes($_POST["username"])); ?>"/>
-					</td>
-				</tr>
-				<tr>
-					<td>Full name</td>
-					<td>
-						<input name="fullname" size="30" maxlength="50" type="text" value="<?php if (isset($_POST["fullname"])) echo htmlspecialchars(stripslashes($_POST["fullname"])); ?>" />
-					</td>
-				</tr>
-				<tr>
-					<td>E-mail address</td>
-					<td>
-						<input name="email" size="30" maxlength="255" type="text" value="<?php if (isset($_POST["email"])) echo $_POST["email"]; ?>" />
-					</td>
-				</tr>
-				<tr>
-					<td>Family</td>
-					<td>
-						<?php
-						$query = "SELECT familyid, familyname FROM {$OPT["table_prefix"]}families ORDER BY familyname";
-						$families = mysql_query($query) or die("Could not query: " . mysql_error());
-						?>
-						<select name="familyid">
-							<?php
-							while ($row = mysql_fetch_array($families,MYSQL_ASSOC)) {
-								?>
-								<option value="<?php echo $row["familyid"]; ?>"><?php echo $row["familyname"]; ?></option>
-								<?php
-							}
-							mysql_free_result($families);
-							?>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<td colspan="2" align="center">
-						<input type="submit" value="Submit" onClick="return validateSignup();" />
-					</td>
-				</tr>
-			</table>
-		</div>
-	</form>
-	<?php
+mysql_free_result($rs);
+
+define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
+require_once(SMARTY_DIR . 'Smarty.class.php');
+$smarty = new Smarty();
+$smarty->assign('families', $families);
+$smarty->assign('username', $username);
+$smarty->assign('fullname', $fullname);
+$smarty->assign('email', $email);
+$smarty->assign('familyid', $familyid);
+$smarty->assign('action', $_POST["action"]);
+if (isset($error)) {
+	$smarty->assign('error', $error);
 }
+$smarty->assign('isadmin', $_SESSION['admin']);
+$smarty->assign('opt', $OPT);
+$smarty->display('signup.tpl');
 ?>
-</body>
-</html>
