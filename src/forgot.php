@@ -55,72 +55,15 @@ if (isset($_POST["action"])) {
 		}
 	}
 }
-echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n";
-?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<title>Gift Registry - Forgot Password</title>
-<link href="styles.css" type="text/css" rel="stylesheet" />
-<script language="JavaScript" type="text/javascript">
-	function validate() {
-		field = document.forgot.username;
-		if (field == null || field == undefined || !field.value.match("\\S")) {
-			alert("You must supply a username.");
-			field.focus();
-			return false;
-		}
-		
-		return true;
-	}
-</script>
-</head>
-<body>
-<?php
-if (isset($_POST["action"]) && $_POST["action"] == "forgot" && $error == "") {
-	// success!
-	?>
-	<p>
-	Shortly, you will receive an e-mail with your new password.</p>
-	<p>Once you've received your password, click <a href="login.php">here</a> to login.</p>
-	<?php
-} else {
-	?>
-	<form name="forgot" method="post" action="forgot.php">	
-		<input type="hidden" name="action" value="forgot">
-		<div align="center">
-			<table cellpadding="3" class="partbox" width="50%">
-				<tr>
-					<td colspan="2" class="partboxtitle" align="center">Retrieve Your Password</td>
-				</tr>
-				<tr>
-					<td colspan="2">
-						<p>
-							Supply your username and click Submit.  
-							Your password will be reset and the new password will be sent to the e-mail address you have associated with your account.
-						</p>
-						<?php
-						if ($error != "")
-							echo "<div class=\"message\">" . $error . "</div>";
-						?>
-					</td>
-				</tr>
-				<tr>
-					<td width="25%">Username</td>
-					<td>
-						<input name="username" size="20" maxlength="20" type="text" value="<?php echo htmlspecialchars(stripslashes($_POST["username"])); ?>"/>
-					</td>
-				</tr>
-				<tr>
-					<td colspan="2" align="center">
-						<input type="submit" value="Submit" onClick="return validate();" />
-					</td>
-				</tr>
-			</table>
-		</div>
-	</form>
-	<?php
+
+define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
+require_once(SMARTY_DIR . 'Smarty.class.php');
+$smarty = new Smarty();
+if (isset($error) && $error != "") {
+	$smarty->assign('error', $error);
 }
+$smarty->assign('action', $_POST["action"]);
+$smarty->assign('username', $username);
+$smarty->assign('opt', $OPT);
+$smarty->display('forgot.tpl');
 ?>
-</body>
-</html>
