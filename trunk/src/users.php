@@ -162,155 +162,41 @@ else {
 	echo "Unknown verb.";
 	exit;
 }
-echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n";
-?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<title>Gift Registry - Manage Users</title>
-<link href="styles.css" type="text/css" rel="stylesheet" />
-<script language="JavaScript" type="text/javascript">
-	function confirmDelete(fullname) {
-		return confirm("Are you sure you want to delete " + fullname + "?");
-	}
-</script>
-</head>
-<body>
-<?php
-if (isset($message)) {
-    echo "<span class=\"message\">" . $message . "</span>";
-}
+
 $query = "SELECT userid, username, fullname, email, email_msgs, approved, admin FROM {$OPT["table_prefix"]}users ORDER BY username";
-$users = mysql_query($query) or die("Could not query: " . mysql_error());
+$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+$users = array();
+while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+	$users[] = $row;
+}
+mysql_free_result($rs);
+
+define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
+require_once(SMARTY_DIR . 'Smarty.class.php');
+$smarty = new Smarty();
+$smarty->assign('action', $action);
+$smarty->assign('username', $username);
+if (isset($username_error)) {
+	$smarty->assign('username_error', $username_error);
+}
+$smarty->assign('fullname', $fullname);
+if (isset($fullname_error)) {
+	$smarty->assign('fullname_error', $fullname_error);
+}
+$smarty->assign('email', $email);
+if (isset($email_error)) {
+	$smarty->assign('email_error', $email_error);
+}
+$smarty->assign('email_msgs', $email_msgs);
+$smarty->assign('approved', $approved);
+$smarty->assign('userisadmin', $userisadmin);
+$smarty->assign('haserror', $haserror);
+$smarty->assign('users', $users);
+if (isset($message)) {
+	$smarty->assign('message', $message);
+}
+$smarty->assign('userid', $userid);
+$smarty->assign('isadmin', $_SESSION["admin"]);
+$smarty->assign('opt', $OPT);
+$smarty->display('users.tpl');
 ?>
-<p>
-	<table class="partbox" width="100%" cellspacing="0">
-		<tr class="partboxtitle">
-			<td colspan="7" align="center">Users</td>
-		</tr>
-		<tr>
-			<th class="colheader">Username</th>
-			<th class="colheader">Fullname</th>
-			<th class="colheader">E-mail</th>
-			<th class="colheader">E-mail messages?</th>
-			<th class="colheader">Approved?</th>
-			<th class="colheader">Admin?</th>
-			<th>&nbsp;</th>
-		</tr>
-		<?php
-		$i = 0;
-		while ($row = mysql_fetch_array($users,MYSQL_ASSOC)) {
-			?>
-			<tr class="<?php echo (!($i++ % 2)) ? "evenrow" : "oddrow" ?>">
-				<td><?php echo htmlspecialchars($row["username"]); ?></td>
-				<td><?php echo htmlspecialchars($row["fullname"]); ?></td>
-				<td><?php echo htmlspecialchars($row["email"]); ?></td>
-				<td><?php echo ($row["email_msgs"] == 1 ? "Yes" : "No"); ?></td>
-				<td><?php echo ($row["approved"] == 1 ? "Yes" : "No"); ?></td>
-				<td><?php echo ($row["admin"] == 1 ? "Yes" : "No"); ?></td>
-				<td align="right">
-					<a href="users.php?action=edit&userid=<?php echo $row["userid"]; ?>">Edit</a>
-					/
-					<a onClick="return confirmDelete('<?php echo jsEscape($row["fullname"]); ?>');" href="users.php?action=delete&userid=<?php echo $row["userid"]; ?>">Delete</a>
-					/
-					<?php
-					// we can't reset their password if their e-mail address isn't set.
-					if ($row["email"] != "") {
-						?>
-						<a href="users.php?action=reset&userid=<?php echo $row["userid"]; ?>&email=<?php echo urlencode($row["email"]); ?>">Reset Pwd</a>
-						<?php
-					}
-					else
-						echo "Reset Pwd";
-					?>
-				</td>
-			</tr>
-			<?php
-		}
-		mysql_free_result($users);
-		?>
-	</table>
-</p>
-<p>
-	<a href="users.php">Add a new user</a> / <a href="index.php">Back to main</a>
-</p>
-<form name="users" method="get" action="users.php">	
-	<?php 
-	if ($action == "edit" || (isset($haserror) && $action == "update")) {
-		?>
-		<input type="hidden" name="userid" value="<?php echo $_GET["userid"]; ?>">
-		<input type="hidden" name="action" value="update">
-		<?php
-	}
-	else if ($action == "" || (isset($haserror) && $action == "insert")) {
-		?>
-		<input type="hidden" name="action" value="insert">
-		<?php
-	}
-	?>
-	<div align="center">
-		<table class="partbox">
-			<tr class="partboxtitle">
-				<td align="center" colspan="2"><?php echo ($action == "edit" ? "Edit User '" . $username . "'" : "Add New User"); ?></td>
-			</tr>
-			<tr valign="top">
-				<td>Username</td>
-				<td>
-					<input name="username" type="text" value="<?php echo htmlspecialchars($username); ?>" maxlength="255" size="50"/>
-					<?php
-					if (isset($username_error)) {
-						?>
-						<br />
-						<font color="red"><?php echo $username_error ?></font><?php
-					}
-					?>
-				</td>
-			</tr>
-			<tr valign="top">
-				<td>Fullname</td>
-				<td>
-					<input name="fullname" type="text" value="<?php echo htmlspecialchars($fullname); ?>" maxlength="255" size="50"/>
-					<?php
-					if (isset($fullname_error)) {
-						?>
-						<br />
-						<font color="red"><?php echo $fullname_error ?></font>
-						<?php
-					}
-					?>
-				</td>
-			</tr>
-			<tr valign="top">
-				<td>E-Mail</td>
-				<td>
-					<input name="email" type="text" value="<?php echo htmlspecialchars($email); ?>" maxlength="255" size="50"/>
-					<?php
-					if (isset($email_error)) {
-						?>
-						<br />
-						<font color="red"><?php echo $email_error ?></font>
-						<?php
-					}
-					?>
-				</td>
-			</tr>
-			<tr>
-				<td colspan="2">
-					<input type="checkbox" name="email_msgs" <?php if ($email_msgs == 1) echo "CHECKED"; ?>>E-mail messages
-					&nbsp;
-					<input type="checkbox" name="approved" <?php if ($approved == 1) echo "CHECKED"; ?>>Approved
-					&nbsp;
-					<input type="checkbox" name="admin" <?php if ($userisadmin == 1) echo "CHECKED"; ?>>Administrator
-				</td>
-			</tr>
-		</table>
-	</div>
-	<p>
-		<div align="center">
-			<input type="submit" value="<?php if ($action == "" || $action == "insert") echo "Add"; else echo "Update"; ?>"/>
-			<input type="button" value="Cancel" onClick="document.location.href='users.php';">
-		</div>
-	</p>
-</form>
-</body>
-</html>
