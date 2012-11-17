@@ -58,10 +58,10 @@ if ($action == "delete") {
 	exit;
 }
 else if ($action == "edit") {
-	$query = "SELECT category FROM {$OPT["table_prefix"]}categories WHERE categoryid = " . $_GET["categoryid"];
+	$query = "SELECT category FROM {$OPT["table_prefix"]}categories WHERE categoryid = " . addslashes($_GET["categoryid"]);
 	$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-	if ($row = mysql_fetch_array($rs,MYSQL_ASSOC)) {
-		$category = htmlspecialchars($row["category"]);
+	if ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+		$category = $row["category"];
 	}
 	mysql_free_result($rs);
 }
@@ -92,102 +92,33 @@ else {
 	exit;
 }
 
-echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n";
-?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<title>Gift Registry - Manage Categories</title>
-<link href="styles.css" type="text/css" rel="stylesheet" />
-</head>
-<body>
-<?php
-if (isset($message)) {
-    echo "<span class=\"message\">" . $message . "</span>";
+$query = "SELECT c.categoryid, c.category, COUNT(itemid) AS itemsin " .
+			"FROM {$OPT["table_prefix"]}categories c " .
+			"LEFT OUTER JOIN {$OPT["table_prefix"]}items i ON i.category = c.categoryid " .
+			"GROUP BY c.categoryid, category " .
+			"ORDER BY category";
+$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+$categories = array();
+while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+	$categories[] = $row;
 }
+mysql_free_result($rs);
 
-$query = "SELECT categoryid, category " .
-			"FROM {$OPT["table_prefix"]}categories ";
-$query .= " ORDER BY category";
-$categories = mysql_query($query) or die("Could not query: " . mysql_error());
-if ($OPT["show_helptext"]) {
-	?>
-	<p class="helptext">
-		Here you can specify categories <strong>of your own</strong>, like &quot;Motorcycle stuff&quot; or &quot;Collectibles&quot;.  This will help you categorize your gifts.<br />
-		Warning: deleting a category will uncategorize all items that used that category.
-	</p>
-	<?php
+define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
+require_once(SMARTY_DIR . 'Smarty.class.php');
+$smarty = new Smarty();
+$smarty->assign('action', $action);
+$smarty->assign('categories', $categories);
+$smarty->assign('categoryid', addslashes($_GET["categoryid"]));
+if (isset($message)) {
+	$smarty->assign('message', $message);
 }
+$smarty->assign('category', $category);
+if (isset($category_error)) {
+	$smarty->assign('category_error', $category_error);
+}
+$smarty->assign('haserror', $haserror);
+$smarty->assign('isadmin', $_SESSION["admin"]);
+$smarty->assign('opt', $OPT);
+$smarty->display('categories.tpl');
 ?>
-<p>
-	<table class="partbox" cellspacing="0" cellpadding="2">
-		<tr class="partboxtitle">
-			<td colspan="2" align="center">Categories</td>
-		</tr>
-		<tr>
-			<th class="colheader">Category</th>
-		</tr>
-		<?php
-		$i = 0;
-		while ($row = mysql_fetch_array($categories,MYSQL_ASSOC)) {
-			?>
-			<tr class="<?php echo (!($i++ % 2)) ? "evenrow" : "oddrow" ?>">
-				<td><?php echo htmlspecialchars($row["category"]); ?></td>
-				<td align="right">
-					<a href="categories.php?action=edit&categoryid=<?php echo $row["categoryid"]; ?>">Edit</a>
-					/
-					<a href="categories.php?action=delete&categoryid=<?php echo $row["categoryid"]; ?>">Delete</a>
-				</td>
-			</tr>
-			<?php
-		}
-		mysql_free_result($categories);
-		?>
-	</table>
-</p>
-<p>
-	<a href="categories.php">Add a new category</a> / <a href="index.php">Back to main</a>
-</p>
-<form name="category" method="get" action="categories.php">	
-	<?php 
-	if ($action == "edit" || (isset($haserror) && $action == "update")) {
-		?>
-		<input type="hidden" name="categoryid" value="<?php echo $_GET["categoryid"]; ?>">
-		<input type="hidden" name="action" value="update">
-		<?php
-	}
-	else if ($action == "" || (isset($haserror) && $action == "insert")) {
-		?>
-		<input type="hidden" name="action" value="insert">
-		<?php
-	}
-	?>
-	<div align="center">
-		<TABLE class="partbox">
-			<tr class="partboxtitle">
-				<td align="center" colspan="2"><?php echo ($action == "edit" ? "Edit Category '" . $category . "'" : "Add New Category"); ?></td>
-			</tr>
-			<TR valign="top">
-				<TD>Category</TD>
-				<TD>
-					<input name="category" type="text" value="<?php echo $category; ?>" maxlength="255" size="50"/>
-					<?php
-					if (isset($category_error)) {
-						?><br /><font color="red"><?php echo $category_error ?></font><?php
-					}
-					?>
-				</TD>
-			</TR>
-		</TABLE>
-	</div>
-	<P>
-		<div align="center">
-			<input type="submit" value="<?php if ($action == "" || $action == "insert") echo "Add"; else echo "Update"; ?>"/>
-			<input type="button" value="Cancel" onClick="document.location.href='categories.php';">
-		</div>
-	</P>
-</form>
-<table border="1">
-</table>
-</body>
-</html>
