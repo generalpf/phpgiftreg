@@ -187,7 +187,7 @@ if (!empty($_REQUEST["action"])) {
 			$stmt->bindParam(8, $comment, PDO::PARAM_STR);
 			$stmt->bindParam(9, $quantity, PDO::PARAM_INT);
 			if ($image_base_filename != "") {
-				$stmt->bindParam(10, $image_base_filename);
+				$stmt->bindParam(10, $image_base_filename, PDO::PARAM_STR);
 			}
 			$stmt->execute();
 			
@@ -221,7 +221,7 @@ if (!empty($_REQUEST["action"])) {
 		    $stmt->bindParam(8, $comment, PDO::PARAM_STR);
 		    $stmt->bindParam(9, $quantity, PDO::PARAM_INT);
 		    if ($image_base_filename != "") {
-				$stmt->bindParam(10, $image_base_filename);
+				$stmt->bindParam(10, $image_base_filename, PDO::PARAM_STR);
 				$stmt->bindParam(11, (int) $_REQUEST["itemid"], PDO::PARAM_INT);
 			}
 			else {

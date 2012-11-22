@@ -35,7 +35,7 @@ if (isset($_POST["action"]) && $_POST["action"] == "forgot") {
 			else {
 				$pwd = generatePassword($opt);
 				$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}users SET password = {$opt["password_hasher"]}(?) WHERE username = ?");
-				$stmt->bindParam(1, $pwd, PDO:PARAM_STR);
+				$stmt->bindParam(1, $pwd, PDO::PARAM_STR);
 				$stmt->bindParam(2, $username, PDO::PARAM_STR);
 
 				$stmt->execute();
