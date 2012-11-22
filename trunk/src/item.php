@@ -13,9 +13,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include("config.php");
-include("db.php");
-include("funcLib.php");
+require_once(dirname(__FILE__) . "/includes/funcLib.php");
+require_once(dirname(__FILE__) . "/includes/MySmarty.class.php");
+$smarty = new MySmarty();
+$opt = $smarty->opt();
 
 session_start();
 if (!isset($_SESSION["userid"])) {
@@ -30,12 +31,18 @@ else {
 // to $userid.  all operations on this page should only be performed by
 // the item's owner.
 if (isset($_REQUEST["itemid"]) && $_REQUEST["itemid"] != "") {
-	$rs = mysql_query("SELECT * FROM {$OPT["table_prefix"]}items WHERE userid = $userid AND itemid = " . (int) $_REQUEST["itemid"]) or die("Could not query: " . mysql_error());
-	if (mysql_num_rows($rs) == 0) {
-		echo "Nice try! (That's not your item.)";
-		exit;
+	try {
+		$stmt = $smarty->dbh()->prepare("SELECT * FROM {$opt["table_prefix"]}items WHERE userid = ? AND itemid = ?");
+		$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+		$stmt->bindValue(2, (int) $_REQUEST["itemid"], PDO::PARAM_INT);
+		$stmt->execute();
+		if (!$stmt->fetch()) {
+			die("Nice try! (That's not your item.)");
+		}
 	}
-	mysql_free_result($rs);
+	catch (PDOException $e) {
+		die("sql exception: " . $e->getMessage());
+	}
 }
 
 $action = "";
@@ -52,16 +59,6 @@ if (!empty($_REQUEST["action"])) {
 		$ranking = $_REQUEST["ranking"];
 		$comment = $_REQUEST["comment"];
 		$quantity = (int) $_REQUEST["quantity"];
-
-		if (!get_magic_quotes_gpc()) {
-			$description = addslashes($description);
-			$price = addslashes($price);
-			$source = addslashes($source);
-			$url = addslashes($url);
-			$category = addslashes($category);
-			$ranking = addslashes($ranking);
-			$comment = addslashes($comment);
-		}
 
 		$haserror = false;
 		if ($description == "") {
@@ -92,7 +89,7 @@ if (!empty($_REQUEST["action"])) {
 
 	if (!$haserror) {
 		if ($_REQUEST["image"] == "remove" || $_REQUEST["image"] == "replace") {
-			deleteImageForItem((int) $_REQUEST["itemid"]);
+			deleteImageForItem((int) $_REQUEST["itemid"], $smarty->dbh(), $smarty->opt());
 		}
 		if ($_REQUEST["image"] == "upload" || $_REQUEST["image"] == "replace") {
 			/* TODO: verify that it's an image using $_FILES["imagefile"]["type"] */
@@ -103,7 +100,7 @@ if (!empty($_REQUEST["action"])) {
 			$parts = pathinfo($_SERVER["SCRIPT_FILENAME"]);
 			$upload_dir = $parts['dirname'];
 			// generate a temporary file in the configured directory.
-			$temp_name = tempnam($upload_dir . "/" . $OPT["image_subdir"],"");
+			$temp_name = tempnam($upload_dir . "/" . $opt["image_subdir"],"");
 			// unlink it, we really want an extension on that.
 			unlink($temp_name);
 			// here's the name we really want to use.  full path is included.
@@ -116,29 +113,44 @@ if (!empty($_REQUEST["action"])) {
 	}
 	
 	if ($action == "delete") {
-		/* find out if this item is bought or reserved. */
-		$query = "SELECT a.userid, a.quantity, a.bought, i.description FROM {$OPT["table_prefix"]}allocs a INNER JOIN {$OPT["table_prefix"]}items i ON i.itemid = a.itemid WHERE a.itemid = " . (int) $_REQUEST["itemid"];
-		$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-		while ($row = mysql_fetch_array($rs,MYSQL_ASSOC)) {
-			$buyerid = $row["userid"];
-			$quantity = $row["quantity"];
-			$bought = $row["bought"];
-			sendMessage($userid,
+		try {
+			/* find out if this item is bought or reserved. */
+			$stmt = $smarty->dbh()->prepare("SELECT a.userid, a.quantity, a.bought, i.description FROM {$opt["table_prefix"]}allocs a INNER JOIN {$opt["table_prefix"]}items i ON i.itemid = a.itemid WHERE a.itemid = ?");
+			$stmt->bindValue(1, (int) $_REQUEST["itemid"], PDO::PARAM_INT);
+			$stmt->execute();
+			while ($row = $stmt->fetch()) {
+				$buyerid = $row["userid"];
+				$quantity = $row["quantity"];
+				$bought = $row["bought"];
+				sendMessage($userid,
 					$buyerid,
-					addslashes("\"" . mysql_escape_string($row["description"]) . "\" that you " . (($bought == 1) ? "bought" : "reserved") . " $quantity of for {$_SESSION["fullname"]} has been deleted.  Check your reservation/purchase to ensure it's still needed."));
+					$row["description"] . " that you " . (($bought == 1) ? "bought" : "reserved") . " $quantity of for {$_SESSION["fullname"]} has been deleted.  Check your reservation/purchase to ensure it's still needed.",
+					$smarty->dbh(),
+					$smarty->opt());
+			}
+	
+			deleteImageForItem((int) $_REQUEST["itemid"], $smarty->dbh(), $smarty->opt());
+
+			$stmt = $smarty->dbh()->prepare("DELETE FROM {$opt["table_prefix"]}items WHERE itemid = ?");
+			$stmt->bindValue(1, (int) $_REQUEST["itemid"], PDO::PARAM_INT);
+			$stmt->execute();
+
+			// TODO: are we leaking allocs records here?
+		
+			stampUser($userid, $smarty->dbh(), $smarty->opt());
+			header("Location: " . getFullPath("index.php?message=Item+deleted."));
+			exit;
 		}
-		mysql_free_result($rs);
-		deleteImageForItem((int) $_REQUEST["itemid"]);
-		$query = "DELETE FROM {$OPT["table_prefix"]}items WHERE itemid = " . (int) $_REQUEST["itemid"];
-		mysql_query($query) or die("Could not query: " . mysql_error());
-		stampUser($userid);
-		header("Location: " . getFullPath("index.php?message=Item+deleted."));
-		exit;
+		catch (PDOException $e) {
+			die("sql exception: " . $e->getMessage());
+		}
 	}
 	else if ($action == "edit") {
-		$query = "SELECT description, price, source, category, url, ranking, comment, quantity, image_filename FROM {$OPT["table_prefix"]}items WHERE itemid = " . (int) $_REQUEST["itemid"];
-		$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-		if ($row = mysql_fetch_array($rs,MYSQL_ASSOC)) {
+		$stmt = $smarty->dbh()->prepare("SELECT description, price, source, category, url, ranking, comment, quantity, image_filename FROM {$opt["table_prefix"]}items WHERE itemid = ?");
+		$stmt->bindValue(1, (int) $_REQUEST["itemid"], PDO::PARAM_INT);
+		$stmt->execute();
+
+		if ($row = $stmt->fetch()) {
 			$description = $row["description"];
 			$price = number_format($row["price"],2,".",",");
 			$source = $row["source"];
@@ -149,7 +161,6 @@ if (!empty($_REQUEST["action"])) {
 			$quantity = (int) $row["quantity"];
 			$image_filename = $row["image_filename"];
 		}
-		mysql_free_result($rs);
 	}
 	else if ($action == "add") {
 		$description = "";
@@ -164,10 +175,24 @@ if (!empty($_REQUEST["action"])) {
 	}
 	else if ($action == "insert") {
 		if (!$haserror) {
-			$query = "INSERT INTO {$OPT["table_prefix"]}items(userid,description,price,source,category,url,ranking,comment,quantity" . ($image_base_filename != "" ? ",image_filename" : "") . ") " .
-						"VALUES($userid,'$description',$price,'$source'," . (($category == "") ? "NULL" : "'$category'") . "," . (($url == "") ? "NULL" : "'$url'") . ",$ranking," . (($comment == "") ? "NULL" : "'$comment'") . ",$quantity" . ($image_base_filename != "" ? ",'$image_base_filename'" : "") . ")";
-			mysql_query($query) or die("Could not query: " . mysql_error());
-			stampUser($userid);
+			$stmt = $smarty->dbh()->prepare("INSERT INTO {$opt["table_prefix"]}items(userid,description,price,source,category,url,ranking,comment,quantity" . ($image_base_filename != "" ? ",image_filename" : "") . ") " .
+				"VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?" . ($image_base_filename != "" ? ", ?)" : ")"));
+			$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+			$stmt->bindParam(2, $description, PDO::PARAM_STR);
+			$stmt->bindParam(3, $price);
+			$stmt->bindParam(4, $source, PDO::PARAM_STR);
+			$stmt->bindParam(5, $category, PDO::PARAM_INT);
+			$stmt->bindParam(6, $url, PDO::PARAM_STR);
+			$stmt->bindParam(7, $ranking, PDO::PARAM_INT);
+			$stmt->bindParam(8, $comment, PDO::PARAM_STR);
+			$stmt->bindParam(9, $quantity, PDO::PARAM_INT);
+			if ($image_base_filename != "") {
+				$stmt->bindParam(10, $image_base_filename);
+			}
+			$stmt->execute();
+			
+			stampUser($userid, $smarty->dbh(), $smarty->opt());
+
 			header("Location: " . getFullPath("index.php"));
 			exit;
 		}
@@ -175,19 +200,37 @@ if (!empty($_REQUEST["action"])) {
 	else if ($action == "update") {
 		if (!$haserror) {
 			// TODO: if the quantity is updated, send a message to everyone who has an allocation for it.
-			$query = "UPDATE {$OPT["table_prefix"]}items SET " .
-					"description = '$description', " .
-					"price = $price, " .
-					"source = '$source', " .
-					"category = " . (($category == "") ? "NULL" : "'$category'") . ", " .
-					"url = " . (($url == "") ? "NULL" : "'$url'") . ", " .
-					"ranking = $ranking, " .
-					"comment = " . (($comment == "") ? "NULL" : "'$comment'") . ", " . 
-					"quantity = $quantity " .
-					($image_base_filename != "" ? ", image_filename = '$image_base_filename' " : "") .
-					"WHERE itemid = " . (int) $_REQUEST["itemid"];
-			mysql_query($query) or die("Could not query: " . mysql_error());
-			stampUser($userid);
+			$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}items SET " .
+					"description = ?, " .
+					"price = ?, " .
+					"source = ?, " .
+					"category = ?, " .
+					"url = ?, " .
+					"ranking = ?, " .
+					"comment = ?, " . 
+					"quantity = ? " .
+					($image_base_filename != "" ? ", image_filename = ? " : "") .
+					"WHERE itemid = ?");
+			$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+			$stmt->bindParam(2, $description, PDO::PARAM_STR);
+			$stmt->bindParam(3, $price);
+		    $stmt->bindParam(4, $source, PDO::PARAM_STR);
+		    $stmt->bindParam(5, $category, PDO::PARAM_INT);
+		    $stmt->bindParam(6, $url, PDO::PARAM_STR);
+		    $stmt->bindParam(7, $ranking, PDO::PARAM_INT);
+		    $stmt->bindParam(8, $comment, PDO::PARAM_STR);
+		    $stmt->bindParam(9, $quantity, PDO::PARAM_INT);
+		    if ($image_base_filename != "") {
+				$stmt->bindParam(10, $image_base_filename);
+				$stmt->bindParam(11, (int) $_REQUEST["itemid"], PDO::PARAM_INT);
+			}
+			else {
+				$stmt->bindParam(10, (int) $_REQUEST["itemid"], PDO::PARAM_INT);
+			}
+			$stmt->execute();
+
+			stampUser($userid, $smarty->dbh(), $smarty->opt());
+
 			header("Location: " . getFullPath("index.php"));
 			exit;		
 		}
@@ -198,23 +241,20 @@ if (!empty($_REQUEST["action"])) {
 	}
 }
 
-$rs = mysql_query("SELECT categoryid, category FROM {$OPT["table_prefix"]}categories ORDER BY category");
+$stmt = $smarty->dbh()->prepare("SELECT categoryid, category FROM {$opt["table_prefix"]}categories ORDER BY category");
+$stmt->execute();
 $categories = array();
-while ($row = mysql_fetch_assoc($rs, MYSQL_ASSOC)) {
+while ($row = $stmt->fetch()) {
 	$categories[] = $row;
 }
-mysql_free_result($rs);
 
-$query = "SELECT ranking, title FROM {$OPT["table_prefix"]}ranks ORDER BY rankorder";
-$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+$stmt = $smarty->dbh()->prepare("SELECT ranking, title FROM {$opt["table_prefix"]}ranks ORDER BY rankorder");
+$stmt->execute();
 $ranks = array();
-while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+while ($row = $stmt->fetch()) {
 	$ranks[] = $row;
 }
 
-define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
-require_once(SMARTY_DIR . 'Smarty.class.php');
-$smarty = new Smarty();
 $smarty->assign('userid', $userid);
 $smarty->assign('action', $action);
 $smarty->assign('haserror', $haserror);
@@ -254,6 +294,6 @@ $smarty->assign('comment', $comment);
 $smarty->assign('categories', $categories);
 $smarty->assign('ranks', $ranks);
 $smarty->assign('isadmin', $_SESSION["admin"]);
-$smarty->assign('opt', $OPT);
+$smarty->assign('opt', $smarty->opt());
 $smarty->display('item.tpl');
 ?>

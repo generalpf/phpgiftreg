@@ -14,9 +14,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include("config.php");
-include("db.php");
-include("funcLib.php");
+require_once(dirname(__FILE__) . "/includes/funcLib.php");
+require_once(dirname(__FILE__) . "/includes/MySmarty.class.php");
+$smarty = new MySmarty();
+$opt = $smarty->opt();
 
 session_start();
 if (!isset($_SESSION["userid"])) {
@@ -33,55 +34,70 @@ if (!empty($_POST["action"])) {
 	
 	if ($action == "changepwd") {
 		$newpwd = $_POST["newpwd"];
-		if (!get_magic_quotes_gpc())
-			$newpwd = addslashes($newpwd);
 
-		$query = "UPDATE {$OPT["table_prefix"]}users SET password = {$OPT["password_hasher"]}('$newpwd') WHERE userid = $userid";
-		mysql_query($query) or die("Could run query: " . mysql_error());
-		header("Location: " . getFullPath("index.php?message=Password+changed."));
-		exit;
+		try {
+			$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}users SET password = {$opt["password_hasher"]}(?) WHERE userid = ?");
+			$stmt->bindParam(1, $newpwd, PDO::PARAM_STR);
+			$stmt->bindParam(2, $userid, PDO::PARAM_INT);
+
+			$stmt->execute();
+
+			header("Location: " . getFullPath("index.php?message=Password+changed."));
+			exit;
+		}
+		catch (PDOException $e) {
+			die("sql exception: " . $e->getMessage());
+		}
 	}
 	else if ($action == "save") {
 		$fullname = $_POST["fullname"];
 		$email = $_POST["email"];
 		$comment = $_POST["comment"];
 		$email_msgs = ($_POST["email_msgs"] == "on" ? 1 : 0);
-		if (!get_magic_quotes_gpc()) {
-			$fullname = addslashes($fullname);
-			$email = addslashes($email);
-			$comment = addslashes($comment);
+
+		try {
+			$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}users SET fullname = ?, email = ?, email_msgs = ?, comment = ? WHERE userid = ?");
+			$stmt->bindParam(1, $fullname, PDO::PARAM_STR);
+			$stmt->bindParam(2, $email, PDO::PARAM_STR);
+			$stmt->bindParam(3, $email_msgs, PDO::PARAM_BOOL);
+			$stmt->bindParam(4, $comment, PDO::PARAM_STR);
+			$stmt->bindParam(5, $userid, PDO::PARAM_INT);
+		
+			$stmt->execute();
+
+			$_SESSION["fullname"] = $fullname;
+
+			header("Location: " . getFullPath("index.php?message=Profile+updated."));
+			exit;
 		}
-
-		$query = "UPDATE {$OPT["table_prefix"]}users SET fullname = '$fullname', email = '$email', email_msgs = $email_msgs, comment = " . ($comment == "" ? "NULL" : "'$comment'") . " WHERE userid = $userid";
-		mysql_query($query) or die("Couldn't run query: " . mysql_error());
-		$_SESSION["fullname"] = stripslashes($fullname);
-
-		header("Location: " . getFullPath("index.php?message=Profile+updated."));
-		exit;
+		catch (PDOException $e) {
+			die("sql exception: " . $e->getMessage());
+		}
 	}
 	else {
-		echo "Unknown verb.";
-		exit;
+		die("Unknown verb.");
 	}
 }
 
-$query = "SELECT fullname, email, email_msgs, comment FROM {$OPT["table_prefix"]}users WHERE userid = " . $userid;
-$rs = mysql_query($query) or die("You don't exist: " . mysql_error());
-$row = mysql_fetch_array($rs, MYSQL_ASSOC);
-$fullname = $row['fullname'];
-$email = $row['email'];
-$email_msgs = $row['email_msgs'];
-$comment = $row['comment'];
-mysql_free_result($rs);
+try {
+	$stmt = $smarty->dbh()->prepare("SELECT fullname, email, email_msgs, comment FROM {$opt["table_prefix"]}users WHERE userid = ?");
+	$stmt->bindParam(1, $userid, PDO::PARAM_INT);
 
-define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
-require_once(SMARTY_DIR . 'Smarty.class.php');
-$smarty = new Smarty();
-$smarty->assign('fullname', $fullname);
-$smarty->assign('email', $email);
-$smarty->assign('email_msgs', $email_msgs);
-$smarty->assign('comment', $comment);
-$smarty->assign('isadmin', $_SESSION["admin"]);
-$smarty->assign('opt', $OPT);
-$smarty->display('profile.tpl');
+	$stmt->execute();
+	if ($row = $stmt->fetch()) {
+		$smarty->assign('fullname', $row["fullname"]);
+		$smarty->assign('email', $row["email"]);
+		$smarty->assign('email_msgs', $row["email_msgs"]);
+		$smarty->assign('comment', $row["comment"]);
+		$smarty->assign('isadmin', $_SESSION["admin"]);
+		$smarty->assign('opt', $smarty->opt());
+		$smarty->display('profile.tpl');
+	}
+	else {
+		die("You don't exist.");
+	}
+}
+catch (PDOException $e) {
+	die("sql exception: " . $e->getMessage());
+}
 ?>

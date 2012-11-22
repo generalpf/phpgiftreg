@@ -13,9 +13,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include("config.php");
-include("db.php");
-include("funcLib.php");
+require_once(dirname(__FILE__) . "/includes/funcLib.php");
+require_once(dirname(__FILE__) . "/includes/MySmarty.class.php");
+$smarty = new MySmarty();
+$opt = $smarty->opt();
 
 session_start();
 if (!isset($_SESSION["userid"])) {
@@ -30,7 +31,7 @@ else {
 	$userid = $_SESSION["userid"];
 }
 if (!empty($_GET["message"])) {
-    $message = strip_tags($_GET["message"]);
+    $message = $_GET["message"];
 }
 
 $action = $_GET["action"];
@@ -39,10 +40,6 @@ if ($action == "insert" || $action == "update") {
 	/* validate the data. */
 	$title = trim($_GET["title"]);
 	$rendered = trim($_GET["rendered"]);
-	if (!get_magic_quotes_gpc()) {
-		$title = addslashes($title);
-		$rendered = addslashes($rendered);
-	}
 		
 	$haserror = false;
 	if ($title == "") {
@@ -57,37 +54,49 @@ if ($action == "insert" || $action == "update") {
 
 if ($action == "delete") {
 	/* first, NULL all ranking FKs for items that use this rank. */
-	$query = "UPDATE {$OPT["table_prefix"]}items SET ranking = NULL WHERE ranking = " . addslashes($_GET["ranking"]);
-	mysql_query($query) or die("Could not query: " . mysql_error());
-	$query = "DELETE FROM {$OPT["table_prefix"]}ranks WHERE ranking = " . addslashes($_GET["ranking"]);
-	mysql_query($query) or die("Could not query: " . mysql_error());
+	$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}items SET ranking = NULL WHERE ranking = ?");
+	$stmt->bindValue(1, (int) $_GET["ranking"], PDO::PARAM_INT);
+	$stmt->execute();
+
+	$stmt = $smarty->dbh()->prepare("DELETE FROM {$opt["table_prefix"]}ranks WHERE ranking = ?");
+	$stmt->bindValue(1, (int) $_GET["ranking"], PDO::PARAM_INT);
+	$stmt->execute();
+	
 	header("Location: " . getFullPath("ranks.php?message=Rank+deleted."));
 	exit;
 }
 else if ($action == "promote") {
-	$query = "UPDATE {$OPT["table_prefix"]}ranks SET rankorder = rankorder + 1 WHERE rankorder = " . addslashes($_GET["rankorder"]) . " - 1";
-	mysql_query($query) or die("Could not query: " . mysql_error());
-	$query = "UPDATE {$OPT["table_prefix"]}ranks SET rankorder = rankorder - 1 WHERE ranking = " . addslashes($_GET["ranking"]);
-	mysql_query($query) or die("Could not query: " . mysql_error());
+	$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}ranks SET rankorder = rankorder + 1 WHERE rankorder = ? - 1");
+	$stmt->bindValue(1, (int) $_GET["rankorder"], PDO::PARAM_INT);
+	$stmt->execute();
+
+	$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}ranks SET rankorder = rankorder - 1 WHERE ranking = ?");
+	$stmt->bindValue(1, (int) $_GET["ranking"], PDO::PARAM_INT);
+	$stmt->execute();
+
 	header("Location: " . getFullPath("ranks.php?message=Rank+promoted."));
 	exit;
 }
 else if ($action == "demote") {
-    $query = "UPDATE {$OPT["table_prefix"]}ranks SET rankorder = rankorder - 1 WHERE rankorder = " . addslashes($_GET["rankorder"]) . " + 1";
-    mysql_query($query) or die("Could not query: " . mysql_error());
-    $query = "UPDATE {$OPT["table_prefix"]}ranks SET rankorder = rankorder + 1 WHERE ranking = " . addslashes($_GET["ranking"]);
-	mysql_query($query) or die("Could not query: " . mysql_error());
-    header("Location: " . getFullPath("ranks.php?message=Rank+demoted."));
+	$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}ranks SET rankorder = rankorder - 1 WHERE rankorder = ? + 1");
+	$stmt->bindValue(1, (int) $_GET["rankorder"], PDO::PARAM_INT);
+	$stmt->execute();
+
+    $stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}ranks SET rankorder = rankorder + 1 WHERE ranking = ?");
+	$stmt->bindValue(1, (int) $_GET["ranking"], PDO::PARAM_INT);
+	$stmt->execute();
+    
+	header("Location: " . getFullPath("ranks.php?message=Rank+demoted."));
     exit;
 }
 else if ($action == "edit") {
-	$query = "SELECT title, rendered FROM {$OPT["table_prefix"]}ranks WHERE ranking = " . addslashes($_GET["ranking"]);
-	$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-	if ($row = mysql_fetch_array($rs,MYSQL_ASSOC)) {
+	$stmt = $smarty->dbh()->prepare("SELECT title, rendered FROM {$opt["table_prefix"]}ranks WHERE ranking = ?");
+	$stmt->bindValue(1, (int) $_GET["ranking"], PDO::PARAM_INT);
+	$stmt->execute();
+	if ($row = $stmt->fetch()) {
 		$title = $row["title"];
 		$rendered = $row["rendered"];
 	}
-	mysql_free_result($rs);
 }
 else if ($action == "") {
 	$title = "";
@@ -95,47 +104,49 @@ else if ($action == "") {
 }
 else if ($action == "insert") {
 	if (!$haserror) {
-		/* first determine the highest rankorder and add one. */
-		$query = "SELECT MAX(rankorder) as maxrankorder FROM {$OPT["table_prefix"]}ranks";
-		$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-		if ($row = mysql_fetch_array($rs,MYSQL_ASSOC))
+		/* we can't assume the DB has a sequence on this so determine the highest rankorder and add one. */
+		$stmt = $smarty->dbh()->prepare("SELECT MAX(rankorder) as maxrankorder FROM {$opt["table_prefix"]}ranks");
+		$stmt->execute();
+		if ($row = $stmt->fetch()) {
 			$rankorder = $row["maxrankorder"] + 1;
-		mysql_free_result($rs);
-		$query = "INSERT INTO {$OPT["table_prefix"]}ranks(title,rendered,rankorder) " .
-					"VALUES('$title','$rendered',$rankorder)";
-		mysql_query($query) or die("Could not query: " . mysql_error());
-		header("Location: " . getFullPath("ranks.php?message=Rank+added."));
-		exit;
+			$stmt = $smarty->dbh()->prepare("INSERT INTO {$opt["table_prefix"]}ranks(title,rendered,rankorder) VALUES(?, ?, ?)");
+			$stmt->bindParam(1, $title, PDO::PARAM_STR);
+			$stmt->bindParam(2, $rendered, PDO::PARAM_STR);
+			$stmt->bindParam(3, $rankorder, PDO::PARAM_INT);
+			$stmt->execute();
+			
+			header("Location: " . getFullPath("ranks.php?message=Rank+added."));
+			exit;
+		}
 	}
 }
 else if ($action == "update") {
 	if (!$haserror) {
-		$query = "UPDATE {$OPT["table_prefix"]}ranks " .
-					"SET title = '$title', rendered = '$rendered' " .
-					"WHERE ranking = " . addslashes($_GET["ranking"]);
-		mysql_query($query) or die("Could not query: " . mysql_error());
+		$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}ranks " .
+					"SET title = ?, rendered = ? " .
+					"WHERE ranking = ?");
+		$stmt->bindParam(1, $title, PDO::PARAM_STR);
+		$stmt->bindParam(2, $rendered, PDO::PARAM_STR);
+		$stmt->bindValue(3, (int) $_GET["ranking"], PDO::PARAM_INT);
+		$stmt->execute();
+		
 		header("Location: " . getFullPath("ranks.php?message=Rank+updated."));
 		exit;		
 	}
 }
 else {
-	echo "Unknown verb.";
-	exit;
+	die("Unknown verb.");
 }
 
-$query = "SELECT ranking, title, rendered, rankorder " .
-			"FROM {$OPT["table_prefix"]}ranks " .
-			"ORDER BY rankorder";
-$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+$stmt = $smarty->dbh()->prepare("SELECT ranking, title, rendered, rankorder " .
+			"FROM {$opt["table_prefix"]}ranks " .
+			"ORDER BY rankorder");
+$stmt->execute();
 $ranks = array();
-while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+while ($row = $stmt->fetch()) {
 	$ranks[] = $row;
 }
-mysql_free_result($rs);
 
-define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
-require_once(SMARTY_DIR . 'Smarty.class.php');
-$smarty = new Smarty();
 $smarty->assign('action', $action);
 $smarty->assign('ranks', $ranks);
 if (isset($message)) {
@@ -152,6 +163,6 @@ if (isset($rendered_error)) {
 $smarty->assign('ranking', $_GET["ranking"]);
 $smarty->assign('haserror', $haserror);
 $smarty->assign('isadmin', $_SESSION["admin"]);
-$smarty->assign('opt', $OPT);
+$smarty->assign('opt', $smarty->opt());
 $smarty->display('ranks.tpl');
 ?>

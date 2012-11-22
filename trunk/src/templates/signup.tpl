@@ -49,7 +49,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	</script>
 </head>
 <body>
-	<div class="container">
+	<div class="container" style="padding-top: 30px;">
 		{if isset($error)}
 			<div class="row">
 				<div class="span8 offset2">

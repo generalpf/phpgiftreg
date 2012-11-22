@@ -76,14 +76,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<h5>{$itemcount} item(s), {$totalprice} total.</h5>
 				</div>
 			</div>
-		<div>
+		</div>
 
 		<div class="row">
 			<div class="span6">
 				<div class="well">
 					<a onClick="printPage()" href="#">Send to printer</a>
 				</div>
-			</diiv>
+			</div>
 		</div>
 	</div>
 

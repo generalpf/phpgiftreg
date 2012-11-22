@@ -13,9 +13,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include("config.php");
-include("db.php");
-include("funcLib.php");
+require_once(dirname(__FILE__) . "/includes/funcLib.php");
+require_once(dirname(__FILE__) . "/includes/MySmarty.class.php");
+$smarty = new MySmarty();
+$opt = $smarty->opt();
 
 session_start();
 if (!isset($_SESSION["userid"])) {
@@ -30,72 +31,85 @@ $action = (!empty($_GET["action"]) ? $_GET["action"] : "");
 $itemid = (int) $_GET["itemid"];
 
 // get details.  is this a single-quantity item?
-$query = "SELECT quantity FROM {$OPT["table_prefix"]}items WHERE itemid = $itemid";
-$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-$row = mysql_fetch_array($rs,MYSQL_ASSOC);
-if (!$row) die("Item does not exist.");
-$quantity = $row["quantity"];
-mysql_free_result($rs);
-
-stampUser($userid);
-
-if ($quantity == 1) {
-	/* just delete the alloc and the item and get out.
-		yes, it's possible the item was RESERVED, not PURCHASED. */
-	deleteImageForItem($itemid);
-	$query = "DELETE FROM {$OPT["table_prefix"]}allocs WHERE itemid = $itemid";
-	mysql_query($query) or die("Could not query: " . mysql_error());
-	$query = "DELETE FROM {$OPT["table_prefix"]}items WHERE itemid = $itemid";
-	mysql_query($query) or die("Could not query: " . mysql_error());
-	header("Location: " . getFullPath("index.php?message=Item+marked+as+received."));
-	exit;
-}
-else if ($action == "receive") {
-	// $actual will be a negative number, so let's flip it.
-	$actual = -adjustAllocQuantity($itemid,(int) $_GET["buyer"],1,-1 * (int) $_GET["quantity"]);
-	
-	if ($actual < (int) $_GET["quantity"]) {
-		// $userid didn't have that many bought, so some might have been reserved.
-		$actual += -adjustAllocQuantity($itemid,(int) $_GET["buyer"],0,-1 * ((int) $_GET["quantity"] - $actual));
-	}
-	
-	if ($actual == $quantity) {
-		// now they're all gone.
-		deleteImageForItem($itemid);
-		$query = "DELETE FROM {$OPT["table_prefix"]}items WHERE itemid = $itemid";
+try {
+	$stmt = $smarty->dbh()->prepare("SELECT quantity FROM {$opt["table_prefix"]}items WHERE itemid = ?");
+	$stmt->bindParam(1, $itemid, PDO::PARAM_INT);
+	$stmt->execute();
+	if ($row = $stmt->fetch()) {
+		$quantity = $row["quantity"];
 	}
 	else {
-		// decrement the item's desired quantity.
-		$query = "UPDATE {$OPT["table_prefix"]}items SET quantity = quantity - $actual WHERE itemid = $itemid";
+		die("Item does not exist.");
 	}
+
+	stampUser($userid, $smarty->dbh(), $smarty->opt());
+
+	if ($quantity == 1) {
+		/* just delete the alloc and the item and get out.
+			yes, it's possible the item was RESERVED, not PURCHASED. */
+		deleteImageForItem($itemid, $smarty->dbh(), $smarty->opt());
+
+		$stmt = $smarty->dbh()->prepare("DELETE FROM {$opt["table_prefix"]}allocs WHERE itemid = ?");
+		$stmt->bindParam(1, $itemid, PDO::PARAM_INT);
+		$stmt->execute();
+
+		$stmt = $smarty->dbh()->prepare("DELETE FROM {$opt["table_prefix"]}items WHERE itemid = ?");
+		$stmt->bindParam(1, $itemid, PDO::PARAM_INT);
+		$stmt->execute();
+
+		header("Location: " . getFullPath("index.php?message=Item+marked+as+received."));
+		exit;
+	}
+	else if ($action == "receive") {
+		// $actual will be a negative number, so let's flip it.
+		$actual = -adjustAllocQuantity($itemid, (int) $_GET["buyer"], 1, -1 * (int) $_GET["quantity"], $smarty->dbh(), $smarty->opt());
 	
-	mysql_query($query) or die("Could not query: " . mysql_error());	
+		if ($actual < (int) $_GET["quantity"]) {
+			// $userid didn't have that many bought, so some might have been reserved.
+			$actual += -adjustAllocQuantity($itemid,(int) $_GET["buyer"],0,-1 * ((int) $_GET["quantity"] - $actual), $smarty->dbh(), $smarty->opt());
+		}
+	
+		if ($actual == $quantity) {
+			// now they're all gone.
+			deleteImageForItem($itemid, $smarty->dbh(), $smarty->opt());
+			$stmt = $smarty->dbh()->prepare("DELETE FROM {$opt["table_prefix"]}items WHERE itemid = ?");
+			$stmt->bindParam(1, $itemid, PDO::PARAM_INT);
+			$stmt->execute();
+		}
+		else {
+			// decrement the item's desired quantity.
+			$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}items SET quantity = quantity - ? WHERE itemid = ?");
+			$stmt->bindParam(1, $actual, PDO::PARAM_INT);
+			$stmt->bindParam(2, $itemid, PDO::PARAM_INT);
+			$stmt->execute();
+		}
+	
+		header("Location: " . getFullPath("index.php?message=Item+marked+as+received."));
+		exit;
+	}
 
-	header("Location: " . getFullPath("index.php?message=Item+marked+as+received."));
-	exit;
-}
-
-$query = "SELECT u.userid, u.fullname " .
-			"FROM {$OPT["table_prefix"]}shoppers s " .
-			"INNER JOIN {$OPT["table_prefix"]}users u ON u.userid = s.shopper " .
-			"WHERE s.mayshopfor = " . $userid . " " .
+	$stmt = $smarty->dbh()->prepare("SELECT u.userid, u.fullname " .
+			"FROM {$opt["table_prefix"]}shoppers s " .
+			"INNER JOIN {$opt["table_prefix"]}users u ON u.userid = s.shopper " .
+			"WHERE s.mayshopfor = ? " .
 				"AND pending = 0 " .
-			"ORDER BY u.fullname";
-$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-$buyers = array();
-while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
-	$buyers[] = $row;
-}
-mysql_free_result($buyers);
+			"ORDER BY u.fullname");
+	$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+	$stmt->execute();
+	$buyers = array();
+	while ($row = $stmt->fetch()) {
+		$buyers[] = $row;
+	}
 
-define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
-require_once(SMARTY_DIR . 'Smarty.class.php');
-$smarty = new Smarty();
-$smarty->assign('buyers', $buyers);
-$smarty->assign('quantity', $quantity);
-$smarty->assign('itemid', $itemid);
-$smarty->assign('userid', $userid);
-$smarty->assign('isadmin', $_SESSION["admin"]);
-$smarty->assign('opt', $OPT);
-$smarty->display('receive.tpl');
+	$smarty->assign('buyers', $buyers);
+	$smarty->assign('quantity', $quantity);
+	$smarty->assign('itemid', $itemid);
+	$smarty->assign('userid', $userid);
+	$smarty->assign('isadmin', $_SESSION["admin"]);
+	$smarty->assign('opt', $smarty->opt());
+	$smarty->display('receive.tpl');
+}
+catch (PDOException $e) {
+	die("sql exception: " . $e->getMessage());
+}
 ?>

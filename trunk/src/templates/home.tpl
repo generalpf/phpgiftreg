@@ -151,7 +151,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						<td>
 							<a href="shop.php?shopfor={$row.userid}">{$row.fullname|escape:'htmlall'}</a>
 							{if $row.comment != ''}
-								<img src="images/view.gif" alt="{$row.comment|escape:'htmlall'}" border="0">
+								<a class="btn btn-small" rel="popover" href="#" data-placement="right" data-original-title="Comment" data-content="{$row.comment|escape:'htmlall'}">...</a>
 							{/if}
 						</td>
 						<td align="right">{$row.list_stamp}</td>
@@ -271,62 +271,62 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					</div>
 				</div>
 			</div>
-			{if $opt.shop_requires_approval}
+			{if $opt.shop_requires_approval || ($isadmin && $opt.newuser_requires_approval)}
 				<div class="row">
-					<div class="span6">
-					<div class="well">
-						<h3>People who want to shop for me</h3>
-					<table class="table table-bordered table-striped">
-						<thead>
-							<tr>	
-								<th class="colheader">Name</th>
-								<th>&nbsp;</th>
-							</tr>
-						</thead>
-						<tbody>
-							{foreach from=$pending item=row}
-								<tr>
-									<td>{$row.fullname|escape:'htmlall'}</td>
-									<td align="right">
-										<a href="index.php?action=approve&shopper={$row.userid}">Approve</a>&nbsp;/
-										<a href="index.php?action=decline&shopper={$row.userid}">Decline</a>
-									</td>
-								</tr>
-							{/foreach}
-						</tbody>
-					</table>
-					</div>
-					</div>
-				</div>
-			{/if}
-			{if $isadmin && $opt.newuser_requires_approval}
-				<div class="row">
-					<div class="span6">
-						<div class="well">
-						<h3>People waiting for approval</h3>
-						<table class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th class="colheader">Name</th>
-								<th class="colheader">Family</th>
-								<th>&nbsp;</th>
-							</tr>
-							</thead>
-							<tbody>
-							{foreach from=$approval item=row}
-								<tr>
-									<td>{$row.fullname|escape:'htmlall'} &lt;<a href="mailto:{$row.email|escape:'htmlall'}">{$row.email|escape:'htmlall'}</a>&gt;</td>
-									<td>{$row.familyname|escape:'htmlall'}</td>
-									<td align="right">
-										<a href="admin.php?action=approve&userid={$row.userid}&familyid={$row.initialfamilyid}">Approve</a>&nbsp;/
-										<a href="admin.php?action=reject&userid={$row.userid}">Reject</a>
-									</td>
-								</tr>
-							{/foreach}
-							</tbody>
-						</table>
+					{if $opt.shop_requires_approval}
+						<div class="span6">
+							<div class="well">
+								<h3>People who want to shop for me</h3>
+								<table class="table table-bordered table-striped">
+									<thead>
+										<tr>	
+											<th class="colheader">Name</th>
+											<th>&nbsp;</th>
+										</tr>
+									</thead>
+									<tbody>
+										{foreach from=$pending item=row}
+											<tr>
+												<td>{$row.fullname|escape:'htmlall'}</td>
+												<td align="right">
+													<a href="index.php?action=approve&shopper={$row.userid}">Approve</a>&nbsp;/
+													<a href="index.php?action=decline&shopper={$row.userid}">Decline</a>
+												</td>
+											</tr>
+										{/foreach}
+									</tbody>
+								</table>
+							</div>
 						</div>
-					</div>
+					{/if}
+					{if $isadmin && $opt.newuser_requires_approval}
+						<div class="span6">
+							<div class="well">
+								<h3>People waiting for approval</h3>
+								<table class="table table-bordered table-striped">
+									<thead>
+										<tr>
+											<th class="colheader">Name</th>
+											<th class="colheader">Family</th>
+											<th>&nbsp;</th>
+										</tr>
+									</thead>
+									<tbody>
+										{foreach from=$approval item=row}
+											<tr>
+												<td>{$row.fullname|escape:'htmlall'} &lt;<a href="mailto:{$row.email|escape:'htmlall'}">{$row.email|escape:'htmlall'}</a>&gt;</td>
+												<td>{$row.familyname|escape:'htmlall'}</td>
+												<td align="right">
+													<a href="admin.php?action=approve&userid={$row.userid}&familyid={$row.initialfamilyid}">Approve</a>&nbsp;/
+													<a href="admin.php?action=reject&userid={$row.userid}">Reject</a>
+												</td>
+											</tr>
+										{/foreach}
+									</tbody>
+								</table>
+							</div>
+						</div>
+					{/if}
 				</div>
 			{/if}
 		</section>

@@ -23,12 +23,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 </head>
 <body>
-	<div class="container">
+	<div class="container" style="padding-top: 30px;">
 		<div class="row">
 			<div class="span8 offset2">
+			<h1>Gift Registry</h1>
 		<form name="login" method="post" action="login.php" class="well form-horizontal">
 			<fieldset>
-				<legend>Gift Registry</legend>
 				{if isset($username)}
 					<div class="alert alert-error">Bad login.</div>
 				{/if}
