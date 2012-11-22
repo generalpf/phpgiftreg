@@ -13,9 +13,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include("config.php");
-include("db.php");
-include("funcLib.php");
+require_once(dirname(__FILE__) . "/includes/funcLib.php");
+require_once(dirname(__FILE__) . "/includes/MySmarty.class.php");
+$smarty = new MySmarty();
+$opt = $smarty->opt();
 
 session_start();
 if (!isset($_SESSION["userid"])) {
@@ -26,48 +27,42 @@ else {
 	$userid = $_SESSION["userid"];
 }
 
-$action = "";
-if (!empty($_GET["action"])) {
-	$action = $_GET["action"];
-	
-	if ($action == "send") {
-		$msg = $_GET["msg"];
-		if (!get_magic_quotes_gpc())
-			$msg = addslashes($msg);
+$action = empty($_GET["action"]) ? "" : $_GET["action"];
 
-		for ($i = 0; $i < count($_GET["recipients"]); $i++)
-			sendMessage($userid,(int) $_GET["recipients"][$i],$msg);
+if ($action == "send") {
+	$msg = $_GET["msg"];
+
+	for ($i = 0; $i < count($_GET["recipients"]); $i++)
+		sendMessage($userid, (int) $_GET["recipients"][$i], $msg, $smarty->dbh(), $smarty->opt());
 		
-		header("Location: " . getFullPath("index.php?message=Your+message+has+been+sent+to+" . count($_GET["recipients"]) . "+recipient(s)."));
-		exit;
-	}
-	else {
-		echo "Unknown verb.";
-		exit;
-	}
+	header("Location: " . getFullPath("index.php?message=Your+message+has+been+sent+to+" . count($_GET["recipients"]) . "+recipient(s)."));
+	exit;
 }
 
-$query = "SELECT u.userid, u.fullname " .
-			"FROM {$OPT["table_prefix"]}shoppers s " .
-			"INNER JOIN {$OPT["table_prefix"]}users u ON u.userid = s.mayshopfor " .
-			"WHERE s.shopper = " . $userid . " " .
+try {
+	$stmt = $smarty->dbh()->prepare("SELECT u.userid, u.fullname " .
+			"FROM {$opt["table_prefix"]}shoppers s " .
+			"INNER JOIN {$opt["table_prefix"]}users u ON u.userid = s.mayshopfor " .
+			"WHERE s.shopper = ? " .
 				"AND pending = 0 " .
-			"ORDER BY u.fullname";
-$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-$recipients = array();
-while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
-	$recipients[] = $row;
-}
-$rcount = mysql_num_rows($rs);
-mysql_free_result($rs);
+			"ORDER BY u.fullname");
+	$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+	$stmt->execute();
+	$recipients = array();
+	$rcount = 0;
+	while ($row = $stmt->fetch()) {
+		$recipients[] = $row;
+		++$rcount;
+	}
 
-define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
-require_once(SMARTY_DIR . 'Smarty.class.php');
-$smarty = new Smarty();
-$smarty->assign('recipients', $recipients);
-$smarty->assign('rcount', $rcount);
-$smarty->assign('userid', $userid);
-$smarty->assign('isadmin', $_SESSION["admin"]);
-$smarty->assign('opt', $OPT);
-$smarty->display('message.tpl');
+	$smarty->assign('recipients', $recipients);
+	$smarty->assign('rcount', $rcount);
+	$smarty->assign('userid', $userid);
+	$smarty->assign('isadmin', $_SESSION["admin"]);
+	$smarty->assign('opt', $smarty->opt());
+	$smarty->display('message.tpl');
+}
+catch (PDOException $e) {
+	die("sql exception: " . $e->getMessage());
+}
 ?>

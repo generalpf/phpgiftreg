@@ -13,9 +13,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include("config.php");
-include("db.php");
-include("funcLib.php");
+require_once(dirname(__FILE__) . "/includes/funcLib.php");
+require_once(dirname(__FILE__) . "/includes/MySmarty.class.php");
+$smarty = new MySmarty();
+$opt = $smarty->opt();
 
 session_start();
 if (!isset($_SESSION["userid"])) {
@@ -27,7 +28,7 @@ else {
 }
 
 if (!empty($_GET["message"])) {
-	$message = strip_tags($_GET["message"]);
+	$message = $_GET["message"];
 }
 
 /* if we've got `page' on the query string, set the session page indicator. */
@@ -45,30 +46,40 @@ else {
 if (!empty($_GET["action"])) {
 	$action = $_GET["action"];
 	if ($action == "ack") {
-		$query = "UPDATE {$OPT["table_prefix"]}messages SET isread = 1 WHERE messageid = " . (int) $_GET["messageid"];
-		mysql_query($query) or die("Could not query: " . mysql_error());
+		$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}messages SET isread = 1 WHERE messageid = ?");
+		$stmt->bindValue(1, (int) $_GET["messageid"], PDO::PARAM_INT);
+		$stmt->execute();
 	}
 	else if ($action == "approve") {
-		$query = "UPDATE {$OPT["table_prefix"]}shoppers SET pending = 0 WHERE shopper = " . (int) $_GET["shopper"] . " AND mayshopfor = $userid";
-		mysql_query($query) or die("Could not query: " . mysql_error());
-		sendMessage($userid,(int) $_GET["shopper"],addslashes($_SESSION["fullname"] . " has approved your request to shop for him/her."));
+		$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}shoppers SET pending = 0 WHERE shopper = ? AND mayshopfor = ?");
+		$stmt->bindValue(1, (int) $_GET["shopper"], PDO::PARAM_INT);
+		$stmt->bindParam(2, $userid, PDO::PARAM_INT);
+		$stmt->execute();
+		sendMessage($userid,(int) $_GET["shopper"],$_SESSION["fullname"] . " has approved your request to shop for him/her.", $smarty->dbh(), $smarty->opt());
 	}
 	else if ($action == "decline") {
-		$query = "DELETE FROM {$OPT["table_prefix"]}shoppers WHERE shopper = " . (int) $_GET["shopper"] . " AND mayshopfor = $userid";
-		mysql_query($query) or die("Could not query: " . mysql_error());
-		sendMessage($userid,(int) $_GET["shopper"],addslashes($_SESSION["fullname"] . " has declined your request to shop for him/her."));
+		$stmt = $smarty->dbh()->prepare("DELETE FROM {$opt["table_prefix"]}shoppers WHERE shopper = ? AND mayshopfor = ?"); 
+		$stmt->bindValue(1, (int) $_GET["shopper"], PDO::PARAM_INT);
+		$stmt->bindParam(2, $userid, PDO::PARAM_INT);
+		$stmt->execute();
+		sendMessage($userid,(int) $_GET["shopper"],$_SESSION["fullname"] . " has declined your request to shop for him/her.", $smarty->dbh(), $smarty->opt());
 	}
 	else if ($action == "request") {
-		$query = "INSERT INTO {$OPT["table_prefix"]}shoppers(shopper,mayshopfor,pending) VALUES($userid," . (int) $_GET["shopfor"] . ",{$OPT["shop_requires_approval"]})";
-		mysql_query($query) or die("Could not query: " . mysql_error());
-		if ($OPT["shop_requires_approval"]) {
-			sendMessage($userid,(int) $_GET["shopfor"],addslashes($_SESSION["fullname"] . " has requested to shop for you.  Please approve or decline this request."));
+		$stmt = $smarty->dbh()->prepare("INSERT INTO {$opt["table_prefix"]}shoppers(shopper,mayshopfor,pending) VALUES(?, ?, ?)");
+		$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+		$stmt->bindValue(2, (int) $_GET["shopfor"], PDO::PARAM_INT);
+		$stmt->bindValue(3, $opt["shop_requires_approval"], PDO::PARAM_BOOL);
+		$stmt->execute();
+		if ($opt["shop_requires_approval"]) {
+			sendMessage($userid,(int) $_GET["shopfor"],$_SESSION["fullname"] . " has requested to shop for you.  Please approve or decline this request.", $smarty->dbh(), $smarty->opt());
 		}
 	}
 	else if ($action == "cancel") {
 		// this works for either cancelling a request or "unshopping" for a user.
-		$query = "DELETE FROM {$OPT["table_prefix"]}shoppers WHERE shopper = " . $userid . " AND mayshopfor = " . (int) $_GET["shopfor"];
-		mysql_query($query) or die("Could not query: " . mysql_error());
+		$stmt = $smarty->dbh()->prepare("DELETE FROM {$opt["table_prefix"]}shoppers WHERE shopper = ? AND mayshopfor = ?");
+		$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+		$stmt->bindValue(2, (int) $_GET["shopfor"], PDO::PARAM_INT);
+		$stmt->execute();
 	}
 }
 
@@ -97,69 +108,75 @@ else {
 			$sortby = "rankorder DESC, i.description";
 	}
 }
-$query = "SELECT itemid, description, c.category, price, url, rendered, comment, image_filename FROM {$OPT["table_prefix"]}items i LEFT OUTER JOIN {$OPT["table_prefix"]}categories c ON c.categoryid = i.category LEFT OUTER JOIN {$OPT["table_prefix"]}ranks r ON r.ranking = i.ranking WHERE userid = " . $userid . " ORDER BY $sortby";
-$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-$myitems_count = mysql_num_rows($rs);
+$stmt = $smarty->dbh()->prepare("SELECT itemid, description, c.category, price, url, rendered, comment, image_filename FROM {$opt["table_prefix"]}items i LEFT OUTER JOIN {$opt["table_prefix"]}categories c ON c.categoryid = i.category LEFT OUTER JOIN {$opt["table_prefix"]}ranks r ON r.ranking = i.ranking WHERE userid = ? ORDER BY " . $sortby);
+$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+$stmt->execute();
+$myitems_count = 0;
 $myitems = array();
-for ($i = 0; $i < $offset; $i++) {
-	$row = mysql_fetch_array($rs, MYSQL_ASSOC);
+for ($i = 0; $i < $offset; $i++, ++$myitems_count) {
+	$row = $stmt->fetch();
 }
 $i = 0;
-while ($i++ < $OPT["items_per_page"] && $row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
-	$row['price'] = formatPrice($row['price']);
+while ($i++ < $opt["items_per_page"] && $row = $stmt->fetch()) {
+	$row['price'] = formatPrice($row['price'], $opt);
 	$myitems[] = $row;
+	++$myitems_count;
 }
-mysql_free_result($rs);
+while ($stmt->fetch()) {
+	++$myitems_count;
+}
 
-$query = "SELECT u.userid, u.fullname, u.comment, u.list_stamp, COUNT(i.itemid) AS itemcount " .
-			"FROM {$OPT["table_prefix"]}shoppers s " .
-			"INNER JOIN {$OPT["table_prefix"]}users u ON u.userid = s.mayshopfor " .
-			"LEFT OUTER JOIN {$OPT["table_prefix"]}items i ON u.userid = i.userid " .
-			"WHERE s.shopper = " . $userid . " " .
+$stmt = $smarty->dbh()->prepare("SELECT u.userid, u.fullname, u.comment, u.list_stamp, COUNT(i.itemid) AS itemcount " .
+			"FROM {$opt["table_prefix"]}shoppers s " .
+			"INNER JOIN {$opt["table_prefix"]}users u ON u.userid = s.mayshopfor " .
+			"LEFT OUTER JOIN {$opt["table_prefix"]}items i ON u.userid = i.userid " .
+			"WHERE s.shopper = ? " .
 				"AND pending = 0 " .
 			"GROUP BY u.userid, u.fullname, u.list_stamp " .
-			"ORDER BY u.fullname";
-$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+			"ORDER BY u.fullname");
+$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+$stmt->execute();
 $shoppees = array();
-while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+while ($row = $stmt->fetch()) {
 	$row['list_stamp'] = ($row['list_stamp == 0'] ? '-' : strftime("%m/%d/%Y", strtotime($row['list_stamp'])));
 	$shoppees[] = $row;
 }
-mysql_free_result($rs);
 
-$query = "SELECT DISTINCT u.userid, u.fullname, s.pending " .
-			"FROM {$OPT["table_prefix"]}memberships mymem " .
-			"INNER JOIN {$OPT["table_prefix"]}memberships others " .
-				"ON others.familyid = mymem.familyid AND others.userid <> " . $userid . " " .
-			"INNER JOIN {$OPT["table_prefix"]}users u " .
+$stmt = $smarty->dbh()->prepare("SELECT DISTINCT u.userid, u.fullname, s.pending " .
+			"FROM {$opt["table_prefix"]}memberships mymem " .
+			"INNER JOIN {$opt["table_prefix"]}memberships others " .
+				"ON others.familyid = mymem.familyid AND others.userid <> ? " .
+			"INNER JOIN {$opt["table_prefix"]}users u " .
 				"ON u.userid = others.userid " .
-			"LEFT OUTER JOIN {$OPT["table_prefix"]}shoppers s " .
-				"ON s.mayshopfor = others.userid AND s.shopper = " . $userid . " " .
-			"WHERE mymem.userid = " . $userid . " " .
+			"LEFT OUTER JOIN {$opt["table_prefix"]}shoppers s " .
+				"ON s.mayshopfor = others.userid AND s.shopper = ? " .
+			"WHERE mymem.userid = ? " .
 				"AND (s.pending IS NULL OR s.pending = 1) " .
 				"AND u.approved = 1 " .
-			"ORDER BY u.fullname";
-$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+			"ORDER BY u.fullname");
+$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+$stmt->bindParam(2, $userid, PDO::PARAM_INT);
+$stmt->bindParam(3, $userid, PDO::PARAM_INT);
+$stmt->execute();
 $prospects = array();
-while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+while ($row = $stmt->fetch()) {
 	$prospects[] = $row;
 }
-mysql_free_result($rs);
 					
-$query = "SELECT messageid, u.fullname, message, created " .
-			"FROM {$OPT["table_prefix"]}messages m " .
-			"INNER JOIN {$OPT["table_prefix"]}users u ON u.userid = m.sender " .
-			"WHERE m.recipient = " . $userid . " " .
+$stmt = $smarty->dbh()->prepare("SELECT messageid, u.fullname, message, created " .
+			"FROM {$opt["table_prefix"]}messages m " .
+			"INNER JOIN {$opt["table_prefix"]}users u ON u.userid = m.sender " .
+			"WHERE m.recipient = ? " .
 				"AND m.isread = 0 " .
-			"ORDER BY created DESC";
-$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+			"ORDER BY created DESC");
+$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+$stmt->execute();
 $messages = array();
-while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
-	$row['created'] = strftime("%a, %b %d", strtotime($row['created']));
+while ($row = $stmt->fetch()) {
+	$row['created'] = strftime("%m/%d/%Y", strtotime($row['created']));
 	$messages[] = $row;
 }
-mysql_free_result($rs);
-				
+
 $query = "SELECT CONCAT(YEAR(CURDATE()),'-',MONTH(eventdate),'-',DAYOFMONTH(eventdate)) AS DateThisYear, " .
 				"TO_DAYS(CONCAT(YEAR(CURDATE()),'-',MONTH(eventdate),'-',DAYOFMONTH(eventdate))) AS ToDaysDateThisYear, " .
 				"CONCAT(YEAR(CURDATE()) + 1,'-',MONTH(eventdate),'-',DAYOFMONTH(eventdate)) AS DateNextYear, " .
@@ -167,28 +184,32 @@ $query = "SELECT CONCAT(YEAR(CURDATE()),'-',MONTH(eventdate),'-',DAYOFMONTH(even
 				"TO_DAYS(CURDATE()) AS ToDaysToday, " .
 				"TO_DAYS(eventdate) AS ToDaysEventDate, " .
 				"e.userid, u.fullname, description, eventdate, recurring, s.pending " .
-			"FROM {$OPT["table_prefix"]}events e " .
-			"LEFT OUTER JOIN {$OPT["table_prefix"]}users u ON u.userid = e.userid " .
-			"LEFT OUTER JOIN {$OPT["table_prefix"]}shoppers s ON s.mayshopfor = e.userid AND s.shopper = $userid ";
-if ($OPT["show_own_events"])
+			"FROM {$opt["table_prefix"]}events e " .
+			"LEFT OUTER JOIN {$opt["table_prefix"]}users u ON u.userid = e.userid " .
+			"LEFT OUTER JOIN {$opt["table_prefix"]}shoppers s ON s.mayshopfor = e.userid AND s.shopper = ? ";
+if ($opt["show_own_events"])
 	$query .= "WHERE (pending = 0 OR pending IS NULL)";
 else
-	$query .= "WHERE (e.userid <> $userid OR e.userid IS NULL) AND (pending = 0 OR pending IS NULL)";
+	$query .= "WHERE (e.userid <> ? OR e.userid IS NULL) AND (pending = 0 OR pending IS NULL)";
 $query .= "ORDER BY u.fullname";
-$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+$stmt = $smarty->dbh()->prepare($query);
+$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+if (!$opt["show_own_events"])
+	$stmt->bindParam(2, $userid, PDO::PARAM_INT);
+$stmt->execute();
 $events = array();
-while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+while ($row = $stmt->fetch()) {
 	$event_fullname = $row["fullname"];
 	$days_left = -1;
-	if (!$row["recurring"] && (($row["ToDaysEventDate"] - $row["ToDaysToday"]) >= 0) && (($row["ToDaysEventDate"] - $row["ToDaysToday"]) <= $OPT["event_threshold"])) {
+	if (!$row["recurring"] && (($row["ToDaysEventDate"] - $row["ToDaysToday"]) >= 0) && (($row["ToDaysEventDate"] - $row["ToDaysToday"]) <= $opt["event_threshold"])) {
 		$days_left = $row["ToDaysEventDate"] - $row["ToDaysToday"];
 		$event_date = strtotime($row["eventdate"]);
 	}
-	else if ($row["recurring"] && (($row["ToDaysDateThisYear"] - $row["ToDaysToday"]) >= 0) && (($row["ToDaysDateThisYear"] - $row["ToDaysToday"]) <= $OPT["event_threshold"])) {
+	else if ($row["recurring"] && (($row["ToDaysDateThisYear"] - $row["ToDaysToday"]) >= 0) && (($row["ToDaysDateThisYear"] - $row["ToDaysToday"]) <= $opt["event_threshold"])) {
 		$days_left = $row["ToDaysDateThisYear"] - $row["ToDaysToday"];
 		$event_date = strtotime($row["DateThisYear"]);
 	}
-	else if ($row["recurring"] && (($row["ToDaysDateNextYear"] - $row["ToDaysToday"]) >= 0) && (($row["ToDaysDateNextYear"] - $row["ToDaysToday"]) <= $OPT["event_threshold"])) {
+	else if ($row["recurring"] && (($row["ToDaysDateNextYear"] - $row["ToDaysToday"]) >= 0) && (($row["ToDaysDateNextYear"] - $row["ToDaysToday"]) <= $opt["event_threshold"])) {
 		$days_left = $row["ToDaysDateNextYear"] - $row["ToDaysToday"];
 		$event_date = strtotime($row["DateNextYear"]);
 	}
@@ -202,7 +223,6 @@ while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
 		$events[] = $thisevent;
 	}
 }
-mysql_free_result($rs);
 					
 function compareEvents($a, $b) {
 	if ($a[0] == $b[0])
@@ -215,38 +235,36 @@ function compareEvents($a, $b) {
 // sort() wanted to sort based on the array keys, which were 0..n - 1, so that was useless.
 usort($events, "compareEvents");
 
-if ($OPT["shop_requires_approval"]) {
+if ($opt["shop_requires_approval"]) {
 	$query = "SELECT u.userid, u.fullname " .
-				"FROM {$OPT["table_prefix"]}shoppers s " .
-				"INNER JOIN {$OPT["table_prefix"]}users u ON u.userid = s.shopper " .
-				"WHERE s.mayshopfor = " . $userid . " " .
+				"FROM {$opt["table_prefix"]}shoppers s " .
+				"INNER JOIN {$opt["table_prefix"]}users u ON u.userid = s.shopper " .
+				"WHERE s.mayshopfor = ? " .
 					"AND s.pending = 1 " .
 				"ORDER BY u.fullname";
-	$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+	$stmt = $smarty->dbh()->prepare($query);
+	$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+	$stmt->execute();
 	$pending = array();
-	while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+	while ($row = $stmt->fetch()) {
 		$pending[] = $row;
 	}
-	mysql_free_result($rs);
 }
 
-if (($_SESSION["admin"] == 1) && $OPT["newuser_requires_approval"]) {
+if (($_SESSION["admin"] == 1) && $opt["newuser_requires_approval"]) {
 	$query = "SELECT userid, fullname, email, approved, initialfamilyid, familyname " .
-				"FROM {$OPT["table_prefix"]}users u " .
-				"LEFT OUTER JOIN {$OPT["table_prefix"]}families f ON f.familyid = u.initialfamilyid " .
+				"FROM {$opt["table_prefix"]}users u " .
+				"LEFT OUTER JOIN {$opt["table_prefix"]}families f ON f.familyid = u.initialfamilyid " .
 				"WHERE approved = 0 " . 
 				"ORDER BY fullname";
-	$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+	$stmt = $smarty->dbh()->prepare($query);
+	$stmt->execute();
 	$approval = array();
-	while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+	while ($row = $stmt->fetch()) {
 		$approval[] = $row;
 	}
-	mysql_free_result($rs);
 }
 
-define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
-require_once(SMARTY_DIR . 'Smarty.class.php');
-$smarty = new Smarty();
 $smarty->assign('fullname', $_SESSION['fullname']);
 if (isset($message)) {
 	$smarty->assign('message', $message);
@@ -258,10 +276,14 @@ $smarty->assign('shoppees', $shoppees);
 $smarty->assign('prospects', $prospects);
 $smarty->assign('messages', $messages);
 $smarty->assign('events', $events);
-$smarty->assign('pending', $pending);
-$smarty->assign('approval', $approval);
+if (isset($pending)) {
+	$smarty->assign('pending', $pending);
+}
+if (isset($approval)) {
+	$smarty->assign('approval', $approval);
+}
 $smarty->assign('userid', $userid);
 $smarty->assign('isadmin', $_SESSION['admin']);
-$smarty->assign('opt', $OPT);
+$smarty->assign('opt', $smarty->opt());
 $smarty->display('home.tpl');
 ?>

@@ -13,9 +13,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include("config.php");
-include("db.php");
-include("funcLib.php");
+require_once(dirname(__FILE__) . "/includes/funcLib.php");
+require_once(dirname(__FILE__) . "/includes/MySmarty.class.php");
+$smarty = new MySmarty();
+$opt = $smarty->opt();
 
 session_start();
 if (!isset($_SESSION["userid"])) {
@@ -31,44 +32,54 @@ if (!empty($_GET["action"])) {
 	$action = $_GET["action"];
 	$itemid = (int) $_GET["itemid"];
 	if ($action == "reserve") {
-		adjustAllocQuantity($itemid,$userid,0,+1);
+		adjustAllocQuantity($itemid,$userid,0,+1, $smarty->dbh(), $smarty->opt());
 	}
 	else if ($action == "purchase") {
 		// decrement reserved.
-		adjustAllocQuantity($itemid,$userid,0,-1);
+		adjustAllocQuantity($itemid,$userid,0,-1, $smarty->dbh(), $smarty->opt());
 		// increment purchased.
-		adjustAllocQuantity($itemid,$userid,1,+1);
+		adjustAllocQuantity($itemid,$userid,1,+1, $smarty->dbh(), $smarty->opt());
 	}
 	else if ($action == "return") {
 		// increment reserved.
-		adjustAllocQuantity($itemid,$userid,0,+1);
+		adjustAllocQuantity($itemid,$userid,0,+1, $smarty->dbh(), $smarty->opt());
 		// decrement purchased.
-		adjustAllocQuantity($itemid,$userid,1,-1);
+		adjustAllocQuantity($itemid,$userid,1,-1, $smarty->dbh(), $smarty->opt());
 	}
 	else if ($action == "release") {
-		adjustAllocQuantity($itemid,$userid,0,-1);
+		adjustAllocQuantity($itemid,$userid,0,-1, $smarty->dbh(), $smarty->opt());
 	}
 	else if ($action == "copy") {
 		/* 
 		can't do this because MySQL 3.x doesn't seem to support it (at least the version i was using).
 		$query = "INSERT INTO items(userid,description,price,source,url,category) SELECT $userid, description, price, source, url, category FROM items WHERE itemid = " . $_GET["itemid"];
-		mysql_query($query) or die("Could not query: " . mysql_error());
 		*/
 		/* TODO: copy the image too? */
-		$query = "SELECT userid, description, price, source, url, category, comment FROM {$OPT["table_prefix"]}items WHERE itemid = " . (int) $_GET["itemid"];
-		$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-		$row = mysql_fetch_array($rs,MYSQL_ASSOC) or die("No item to copy.");
-		$desc = mysql_escape_string($row["description"]);
-		$source = mysql_escape_string($row["source"]);
-		$url = mysql_escape_string($row["url"]);
-		$comment = mysql_escape_string($row["comment"]);
-		$price = (float) $row["price"];
-		$cat = (int) $row["category"];
-		mysql_free_result($rs);
-		$query = "INSERT INTO {$OPT["table_prefix"]}items(userid,description,price,source,url,comment,category,ranking,quantity) VALUES($userid,'$desc','$price','$source'," . (($url == "") ? "NULL" : "'$url'") . "," . (($comment == "") ? "NULL" : "'$comment'") . "," . (($cat == "") ? "NULL" : $cat) . ",1,1)";
-		mysql_query($query) or die("Could not query: $query " . mysql_error());
-		stampUser($userid);
-		$message = "Added '" . stripslashes($desc) . "' to your gift list.";
+		$stmt = $smarty->dbh()->prepare("SELECT userid, description, price, source, url, category, comment FROM {$opt["table_prefix"]}items WHERE itemid = ?");
+		$stmt->bindParam(1, $itemid, PDO::PARAM_INT);
+		$stmt->execute();
+		if ($row = $stmt->fetch()) {
+			$desc = $row["description"];
+			$source = $row["source"];
+			$url = $row["url"];
+			$comment = $row["comment"];
+			$price = (float) $row["price"];
+			$cat = (int) $row["category"];
+		
+			$stmt = $smarty->dbh()->prepare("INSERT INTO {$opt["table_prefix"]}items(userid,description,price,source,url,comment,category,ranking,quantity) VALUES(?, ?, ?, ?, ?, ?, ?, 1, 1");
+			$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+			$stmt->bindParam(2, $desc, PDO::PARAM_STR);
+			$stmt->bindParam(3, $price);
+			$stmt->bindParam(4, $source, PDO::PARAM_STR);
+			$stmt->bindParam(5, $url, PDO::PARAM_STR);
+			$stmt->bindParam(6, $comment, PDO::PARAM_STR);
+			$stmt->bindParam(7,	$cat, PDO::PARAM_INT);
+			$stmt->execute();
+		
+			stampUser($userid, $smarty->dbh(), $smarty->opt());
+
+			$message = "Added '" . $desc . "' to your gift list.";
+		}
 	}
 }
 
@@ -77,12 +88,14 @@ if ($shopfor == $userid) {
 	echo "Nice try! (You can't shop for yourself.)";
 	exit;
 }
-$rs = mysql_query("SELECT * FROM {$OPT["table_prefix"]}shoppers WHERE shopper = $userid AND mayshopfor = $shopfor AND pending = 0") or die("Could not query: " . mysql_error());
-if (mysql_num_rows($rs) == 0) {
+$stmt = $smarty->dbh()->prepare("SELECT * FROM {$opt["table_prefix"]}shoppers WHERE shopper = ? AND mayshopfor = ? AND pending = 0");
+$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+$stmt->bindParam(2, $shopfor, PDO::PARAM_INT);
+$stmt->execute();
+if (!($stmt->fetch())) {
 	echo "Nice try! (You can't shop for someone who hasn't approved it.)";
 	exit;
 }
-mysql_free_result($rs);
 
 if (!isset($_GET["sort"])) {
 	$sortby = "rankorder DESC, description";
@@ -120,46 +133,47 @@ else {
 	for those items with a quantity of 1.  if the item's quantity > 1 we'll query alloc when we
 	get to that record.  the theory is that most items will have quantity = 1 so we'll make the least
 	number of trips. */
-$query = "SELECT i.itemid, description, price, source, c.category, url, image_filename, " .
+$stmt = $smarty->dbh()->prepare("SELECT i.itemid, description, price, source, c.category, url, image_filename, " .
 		"ub.fullname AS bfullname, ub.userid AS boughtid, " .
 		"ur.fullname AS rfullname, ur.userid AS reservedid, " .
 		"rendered, i.comment, i.quantity " .
-	"FROM {$OPT["table_prefix"]}items i " .
-	"LEFT OUTER JOIN {$OPT["table_prefix"]}categories c ON c.categoryid = i.category " .
-	"LEFT OUTER JOIN {$OPT["table_prefix"]}ranks r ON r.ranking = i.ranking " .
-	"LEFT OUTER JOIN {$OPT["table_prefix"]}allocs a ON a.itemid = i.itemid AND i.quantity = 1 " .	// only join allocs for single-quantity items.
-	"LEFT OUTER JOIN {$OPT["table_prefix"]}users ub ON ub.userid = a.userid AND a.bought = 1 " .
-	"LEFT OUTER JOIN {$OPT["table_prefix"]}users ur ON ur.userid = a.userid AND a.bought = 0 " .
+	"FROM {$opt["table_prefix"]}items i " .
+	"LEFT OUTER JOIN {$opt["table_prefix"]}categories c ON c.categoryid = i.category " .
+	"LEFT OUTER JOIN {$opt["table_prefix"]}ranks r ON r.ranking = i.ranking " .
+	"LEFT OUTER JOIN {$opt["table_prefix"]}allocs a ON a.itemid = i.itemid AND i.quantity = 1 " .	// only join allocs for single-quantity items.
+	"LEFT OUTER JOIN {$opt["table_prefix"]}users ub ON ub.userid = a.userid AND a.bought = 1 " .
+	"LEFT OUTER JOIN {$opt["table_prefix"]}users ur ON ur.userid = a.userid AND a.bought = 0 " .
 	"WHERE i.userid = $shopfor " .
-	"ORDER BY $sortby";
-$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-
+	"ORDER BY " . $sortby);
+$stmt->bindParam(1, $shopfor, PDO::PARAM_INT);
+$stmt->execute();
 $shoprows = array();
-while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
-	$row['price'] = formatPrice($row['price']);
+while ($row = $stmt->fetch()) {
+	$row['price'] = formatPrice($row['price'], $opt);
 	if ($row['quantity'] > 1) {
 		// check the allocs table to see what has been allocated.
 		$avail = $row['quantity'];
-		$query = "SELECT a.quantity, a.bought, a.userid, " .
+		$substmt = $smarty->dbh()->prepare("SELECT a.quantity, a.bought, a.userid, " .
 					"ub.fullname AS bfullname, ub.userid AS boughtid, " .
 					"ur.fullname AS rfullname, ur.userid AS reservedid " .
-				"FROM {$OPT["table_prefix"]}allocs a " .
-				"LEFT OUTER JOIN {$OPT["table_prefix"]}users ub ON ub.userid = a.userid AND a.bought = 1 " .
-				"LEFT OUTER JOIN {$OPT["table_prefix"]}users ur ON ur.userid = a.userid AND a.bought = 0 " .
-				"WHERE a.itemid = " . $row['itemid'] . " " .
-				"ORDER BY a.bought, a.quantity";
-		$allocs = mysql_query($query) or die("Could not query: " . mysql_error());
+				"FROM {$opt["table_prefix"]}allocs a " .
+				"LEFT OUTER JOIN {$opt["table_prefix"]}users ub ON ub.userid = a.userid AND a.bought = 1 " .
+				"LEFT OUTER JOIN {$opt["table_prefix"]}users ur ON ur.userid = a.userid AND a.bought = 0 " .
+				"WHERE a.itemid = ? " .
+				"ORDER BY a.bought, a.quantity");
+		$substmt->bindValue(1, $row['itemid'], PDO::PARAM_INT);
+		$substmt->execute();
 		$ibought = 0;
 		$ireserved = 0;
 		$itemallocs = array();
-		while ($allocrow = mysql_fetch_array($allocs, MYSQL_ASSOC)) {
+		while ($allocrow = $substmt->fetch()) {
 			if ($allocrow['bfullname'] != '') {
 				if ($allocrow['boughtid'] == $userid) {
 					$ibought += $allocrow['quantity'];
 					$itemallocs[] = ($allocrow['quantity'] . " bought by you.");
 				}
 				else {
-					if (!$OPT["anonymous_purchasing"]) {
+					if (!$opt["anonymous_purchasing"]) {
 						$itemallocs[] = ($allocrow['quantity'] . " bought by " . $allocrow['bfullname'] . ".");
 					}
 					else {
@@ -173,7 +187,7 @@ while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
 					$itemallocs[] = ($allocrow['quantity'] . " reserved by you.");
 				}
 				else {
-					if (!$OPT["anonymous_purchasing"]) {
+					if (!$opt["anonymous_purchasing"]) {
 						$itemallocs[] = ($allocrow['quantity'] . " reserved by " . $allocrow['rfullname'] . ".");
 					}
 					else {
@@ -183,7 +197,6 @@ while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
 			}
 			$avail -= $allocrow['quantity'];
 		}
-		mysql_free_result($allocs);
 		$row['allocs'] = $itemallocs;
 		$row['avail'] = $avail;
 		$row['ibought'] = $ibought;
@@ -191,26 +204,26 @@ while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
 	}
 	$shoprows[] = $row;
 }
-mysql_free_result($rs);
 
 /* okay, I *would* retrieve the shoppee's fullname from the items recordset,
 	except that I wouldn't get it if he had no items, so I *could* LEFT OUTER
 	JOIN, but then it would complicate the iteration logic, so let's just
 	hit the DB again. */
-$query = "SELECT fullname FROM {$OPT["table_prefix"]}users WHERE userid = $shopfor";
-$urs = mysql_query($query) or die("Could not query: " . mysql_error());
-$ufullname = mysql_fetch_array($urs, MYSQL_ASSOC);
-$ufullname = $ufullname["fullname"];
-mysql_free_result($urs);
+$stmt = $smarty->dbh()->prepare("SELECT fullname FROM {$opt["table_prefix"]}users WHERE userid = ?");
+$stmt->bindParam(1, $shopfor, PDO::PARAM_INT);
+$stmt->execute();
+if ($row = $stmt->fetch()) {
+	$ufullname = $row["fullname"];
+}
 
-define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
-require_once(SMARTY_DIR . 'Smarty.class.php');
-$smarty = new Smarty();
 $smarty->assign('ufullname', $ufullname);
 $smarty->assign('shopfor', $shopfor);
 $smarty->assign('shoprows', $shoprows);
 $smarty->assign('userid', $userid);
+if (isset($message)) {
+	$smarty->assign('message', $message);
+}
 $smarty->assign('isadmin', $_SESSION["admin"]);
-$smarty->assign('opt', $OPT);
+$smarty->assign('opt', $smarty->opt());
 $smarty->display('shop.tpl');
 ?>

@@ -13,57 +13,59 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include("config.php");
-include("db.php");
-include("funcLib.php");
+require_once(dirname(__FILE__) . "/includes/funcLib.php");
+require_once(dirname(__FILE__) . "/includes/MySmarty.class.php");
+$smarty = new MySmarty();
+$opt = $smarty->opt();
 
-$error = "";
+if (isset($_POST["action"]) && $_POST["action"] == "forgot") {
+	$username = $_POST["username"];
 
-if (isset($_POST["action"])) {
-	if ($_POST["action"] == "forgot") {
-		$username = $_POST["username"];
-		if (!get_magic_quotes_gpc()) {
-			$username = addslashes($username);
-		}
-		
+	try {
 		// make sure that username is valid 
-		$query = "SELECT email FROM {$OPT["table_prefix"]}users WHERE username = '$username'";
-		$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-		if (mysql_num_rows($rs) == 0) {
-			$error = "The username '" . stripslashes($username) . "' could not be found.";
-			mysql_free_result($rs);
-		}
-		else {
-			$row = mysql_fetch_array($rs,MYSQL_ASSOC);
-			$email = $row["email"];
-			mysql_free_result($rs);
+		$stmt = $smarty->dbh()->prepare("SELECT email FROM {$opt["table_prefix"]}users WHERE username = ?");
+		$stmt->bindParam(1, $username, PDO::PARAM_STR);
 			
+		$stmt->execute();
+		if ($row = $stmt->fetch()) {
+			$email = $row["email"];
+		
 			if ($email == "")
-				$error = "The username '" . stripslashes($username) . "' does not have an e-mail address, so the password could not be sent.";
+				$error = "The username '" . $username . "' does not have an e-mail address, so the password could not be sent.";
 			else {
-				$pwd = generatePassword();
-				$query = "UPDATE {$OPT["table_prefix"]}users SET password = {$OPT["password_hasher"]}('$pwd') WHERE username = '$username'";
-				mysql_query($query) or die("Could not query: " . mysql_error());
+				$pwd = generatePassword($opt);
+				$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}users SET password = {$opt["password_hasher"]}(?) WHERE username = ?");
+				$stmt->bindParam(1, $pwd, PDO:PARAM_STR);
+				$stmt->bindParam(2, $username, PDO::PARAM_STR);
+
+				$stmt->execute();
 				mail(
 					$email,
 					"Gift Registry password reset",
 					"Your Gift Registry account information:\r\n" . 
 						"Your username is '" . $username . "' and your new password is '$pwd'.",
-					"From: {$GLOBALS["OPT"]["email_from"]}\r\nReply-To: {$OPT["email_reply_to"]}\r\nX-Mailer: {$GLOBALS["OPT"]["email_xmailer"]}\r\n"
-				) or die("Mail not accepted for $email");	
+					"From: {$opt["email_from"]}\r\nReply-To: {$opt["email_reply_to"]}\r\nX-Mailer: {$opt["email_xmailer"]}\r\n"
+				) or die("Mail not accepted for $email");
 			}
 		}
+		else {
+			$error = "The username '" . $username . "' could not be found.";
+		}
+
+		if (!empty($error)) {
+			$smarty->assign('error', $error);
+		}
+		$smarty->assign('action', $_POST["action"]);
+		$smarty->assign('username', $username);
+		$smarty->assign('opt', $smarty->opt());
+		$smarty->display('forgot.tpl');
+	}
+	catch (PDOException $e) {
+		die("sql exception: " . $e->getMessage());
 	}
 }
-
-define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
-require_once(SMARTY_DIR . 'Smarty.class.php');
-$smarty = new Smarty();
-if (isset($error) && $error != "") {
-	$smarty->assign('error', $error);
+else {
+	$smarty->assign('opt', $smarty->opt());
+	$smarty->display('forgot.tpl');
 }
-$smarty->assign('action', $_POST["action"]);
-$smarty->assign('username', $username);
-$smarty->assign('opt', $OPT);
-$smarty->display('forgot.tpl');
 ?>

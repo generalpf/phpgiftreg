@@ -13,9 +13,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include("config.php");
-include("db.php");
-include("funcLib.php");
+require_once(dirname(__FILE__) . "/includes/funcLib.php");
+require_once(dirname(__FILE__) . "/includes/MySmarty.class.php");
+$smarty = new MySmarty();
+$opt = $smarty->opt();
 
 session_start();
 if (!isset($_SESSION["userid"])) {
@@ -30,16 +31,17 @@ else {
 	$userid = $_SESSION["userid"];
 }
 if (!empty($_GET["message"])) {
-    $message = strip_tags($_GET["message"]);
+    $message = $_GET["message"];
 }
 
 $action = empty($_GET["action"]) ? "" : $_GET["action"];
 
+if (!empty($_GET["familyid"]))
+	$familyid = (int) $_GET["familyid"];
+
 if ($action == "insert" || $action == "update") {
 	/* validate the data. */
 	$familyname = trim($_GET["familyname"]);
-	if (!get_magic_quotes_gpc())
-		$familyname = addslashes($familyname);
 		
 	$haserror = false;
 	if ($familyname == "") {
@@ -49,104 +51,145 @@ if ($action == "insert" || $action == "update") {
 }
 
 if ($action == "delete") {
-	/* first, delete all memberships for this family. */
-	$query = "DELETE FROM {$OPT["table_prefix"]}memberships WHERE familyid = " . addslashes($_GET["familyid"]);
-	mysql_query($query) or die("Could not query: " . mysql_error());
-	$query = "DELETE FROM {$OPT["table_prefix"]}families WHERE familyid = " . addslashes($_GET["familyid"]);
-	mysql_query($query) or die("Could not query: " . mysql_error());
-	header("Location: " . getFullPath("families.php?message=Family+deleted."));
-	exit;
+	try {
+		/* first, delete all memberships for this family. */
+		$stmt = $smarty->dbh()->prepare("DELETE FROM {$opt["table_prefix"]}memberships WHERE familyid = ?");
+		$stmt->bindParam(1, $familyid, PDO::PARAM_INT);
+		$stmt->execute();
+
+		$stmt = $smarty->dbh()->prepare("DELETE FROM {$opt["table_prefix"]}families WHERE familyid = ?");
+		$stmt->bindValue(1, $familyid, PDO::PARAM_INT);
+		$stmt->execute();
+	
+		header("Location: " . getFullPath("families.php?message=Family+deleted."));
+		exit;
+	}
+	catch (PDOException $e) {
+		die("sql exception: " . $e->getMessage());
+	}
 }
 else if ($action == "edit") {
-	$query = "SELECT familyname FROM {$OPT["table_prefix"]}families WHERE familyid = " . addslashes($_GET["familyid"]);
-	$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-	if ($row = mysql_fetch_array($rs,MYSQL_ASSOC)) {
-		$familyname = $row["familyname"];
+	try {
+		$stmt = $smarty->dbh()->prepare("SELECT familyname FROM {$opt["table_prefix"]}families WHERE familyid = ?");
+		$stmt->bindValue(1, $familyid, PDO::PARAM_INT);
+		$stmt->execute();
+		if ($row = $stmt->fetch()) {
+			$familyname = $row["familyname"];
+		}
+		else {
+			die("family doesn't exist.");
+		}
 	}
-	mysql_free_result($rs);
+	catch (PDOException $e) {
+		die("sql exception: " . $e->getMessage());
+	}
 }
 else if ($action == "") {
 	$familyname = "";
 }
 else if ($action == "insert") {
 	if (!$haserror) {
-		$query = "INSERT INTO {$OPT["table_prefix"]}families(familyid,familyname) " .
-					"VALUES(NULL,'$familyname')";
-		mysql_query($query) or die("Could not query: " . mysql_error());
+		try {
+			$stmt = $smarty->dbh()->prepare("INSERT INTO {$opt["table_prefix"]}families(familyid,familyname) VALUES(NULL, ?)");
+			$stmt->bindParam(1, $familyname, PDO::PARAM_STR);
+			$stmt->execute();
+		}
+		catch (PDOException $e) {
+			die("sql exception: " . $e->getMessage());
+		}
+		
 		header("Location: " . getFullPath("families.php?message=Family+added."));
 		exit;
 	}
 }
 else if ($action == "update") {
 	if (!$haserror) {
-		$query = "UPDATE {$OPT["table_prefix"]}families " .
-					"SET familyname = '$familyname' " .
-					"WHERE familyid = " . addslashes($_GET["familyid"]);
-		mysql_query($query) or die("Could not query: " . mysql_error());
+		try {
+			$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}families " .
+					"SET familyname = ? " .
+					"WHERE familyid = ?");
+			$stmt->bindParam(1, $familyname, PDO::PARAM_STR);
+			$stmt->bindValue(2, $familyid, PDO::PARAM_INT);
+			$stmt->execute();
+		}
+		catch (PDOException $e) {
+			die("sql exception: " . $e->getMessage());
+		}
+		
 		header("Location: " . getFullPath("families.php?message=Family+updated."));
 		exit;		
 	}
 }
 else if ($action == "members") {
 	$members = $_GET["members"];
-	/* first, delete all memberships for this family. */
-	$query = "DELETE FROM {$OPT["table_prefix"]}memberships WHERE familyid = " . addslashes($_GET["familyid"]);
-	mysql_query($query) or die("Could not query: " . mysql_error());
-	/* now add them back. */
-	foreach ($members as $userid) {
-		$query = "INSERT INTO {$OPT["table_prefix"]}memberships(userid,familyid) VALUES(" . addslashes($userid) . "," . addslashes($_GET["familyid"]) . ")";
-		mysql_query($query) or die("Could not query: " . mysql_error());
+	try {
+		/* first, delete all memberships for this family. */
+		$stmt = $smarty->dbh()->prepare("DELETE FROM {$opt["table_prefix"]}memberships WHERE familyid = ?");
+		$stmt->bindValue(1, $familyid, PDO::PARAM_INT);
+		$stmt->execute();
+
+		/* now add them back. */
+		foreach ($members as $userid) {
+			$stmt = $smarty->dbh()->prepare("INSERT INTO {$opt["table_prefix"]}memberships(userid,familyid) VALUES(?, ?)");
+			$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+			$stmt->bindParam(2, $familyid, PDO::PARAM_INT);
+			$stmt->execute();
+		}
 	}
+	catch (PDOException $e) {
+		die("sql exception: " . $e->getMessage());
+	}
+	
 	header("Location: " . getFullPath("families.php?message=Members+changed."));
 	exit;
 }
 else {
-	echo "Unknown verb.";
-	exit;
+	die("Unknown verb.");
 }
 
-$query = "SELECT f.familyid, familyname, COUNT(userid) AS members " .
-			"FROM {$OPT["table_prefix"]}families f " .
-			"LEFT OUTER JOIN {$OPT["table_prefix"]}memberships m ON m.familyid = f.familyid " .
+try {
+	$stmt = $smarty->dbh()->prepare("SELECT f.familyid, familyname, COUNT(userid) AS members " .
+			"FROM {$opt["table_prefix"]}families f " .
+			"LEFT OUTER JOIN {$opt["table_prefix"]}memberships m ON m.familyid = f.familyid " .
 			"GROUP BY f.familyid " .
-			"ORDER BY familyname";
-$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-$families = array();
-while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
-	$families[] = $row;
-}
-mysql_free_result($rs);
-
-if ($action == "edit") {
-	$query = "SELECT u.userid, u.fullname, m.familyid FROM {$OPT["table_prefix"]}users u " .
-				"LEFT OUTER JOIN {$OPT["table_prefix"]}memberships m ON m.userid = u.userid AND m.familyid = " . addslashes($_GET["familyid"]) . " " .
-				"ORDER BY u.fullname";
-	$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-	$nonmembers = array();
-	while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
-		$nonmembers[] = $row;
+			"ORDER BY familyname");
+	$stmt->execute();
+	$families = array();
+	while ($row = $stmt->fetch()) {
+		$families[] = $row;
 	}
-	mysql_free_result($rs);
-}
 
-define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
-require_once(SMARTY_DIR . 'Smarty.class.php');
-$smarty = new Smarty();
-$smarty->assign('action', $action);
-$smarty->assign('haserror', $haserror);
-if (isset($familyname_error)) {
-	$smarty->assign('familyname_error', $familyname_error);
+	if ($action == "edit") {
+		$stmt = $smarty->dbh()->prepare("SELECT u.userid, u.fullname, m.familyid FROM {$opt["table_prefix"]}users u " .
+				"LEFT OUTER JOIN {$opt["table_prefix"]}memberships m ON m.userid = u.userid AND m.familyid = ? " .
+				"ORDER BY u.fullname");
+		$stmt->bindParam(1, $familyid, PDO::PARAM_INT);
+		$stmt->execute();
+		$nonmembers = array();
+		while ($row = $stmt->fetch()) {
+			$nonmembers[] = $row;
+		}
+	}
+
+	$smarty->assign('action', $action);
+	$smarty->assign('haserror', $haserror);
+	if (isset($familyname_error)) {
+		$smarty->assign('familyname_error', $familyname_error);
+	}
+	$smarty->assign('families', $families);
+	$smarty->assign('familyid',	$familyid);
+	$smarty->assign('familyname', $familyname);
+	if (isset($nonmembers)) {
+		$smarty->assign('nonmembers', $nonmembers);
+	}
+	if (isset($message)) {
+		$smarty->assign('message', $message);
+	}
+	$smarty->assign('isadmin', $_SESSION["admin"]);
+	$smarty->assign('opt', $smarty->opt());
+	$smarty->display('families.tpl');
 }
-$smarty->assign('families', $families);
-$smarty->assign('familyid', $_GET["familyid"]);
-$smarty->assign('familyname', $familyname);
-if (isset($nonmembers)) {
-	$smarty->assign('nonmembers', $nonmembers);
+catch (PDOException $e) {
+	die("sql exception: " . $e->getMessage());
 }
-if (isset($message)) {
-	$smarty->assign('message', $message);
-}
-$smarty->assign('isadmin', $_SESSION["admin"]);
-$smarty->assign('opt', $OPT);
-$smarty->display('families.tpl');
 ?>

@@ -13,9 +13,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include("config.php");
-include("db.php");
-include("funcLib.php");
+require_once(dirname(__FILE__) . "/includes/funcLib.php");
+require_once(dirname(__FILE__) . "/includes/MySmarty.class.php");
+$smarty = new MySmarty();
+$opt = $smarty->opt();
 
 session_start();
 if (!isset($_SESSION["userid"])) {
@@ -27,28 +28,34 @@ else {
 }
 
 if (!empty($_GET["message"])) {
-    $message = strip_tags($_GET["message"]);
+    $message = $_GET["message"];
 }
 
 if (isset($_GET["eventid"])) {
-	$eventid = (int) $_GET["eventid"];
+	$eventid = $_GET["eventid"];
 }
 
 // for security, let's make sure that if an eventid was passed in, it belongs
 // to $userid (or is a system event and the user is an admin).
 // all operations on this page should only be performed by the event's owner.
 if (isset($eventid)) {
-	$query = "SELECT * FROM {$OPT["table_prefix"]}events WHERE eventid = $eventid AND ";
-	if ($_SESSION["admin"] == 1)
-		$query .= "(userid = " . $_SESSION["userid"] . " OR userid IS NULL)";
-	else
-		$query .= "userid = " . $_SESSION["userid"];
-	$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-	if (mysql_num_rows($rs) == 0) {
-		echo "Nice try! (That's not your event.)";
-		exit;
+	try {
+		$query = "SELECT * FROM {$opt["table_prefix"]}events WHERE eventid = ? AND ";
+		if ($_SESSION["admin"] == 1)
+			$query .= "(userid = ? OR userid IS NULL)";
+		else
+			$query .= "userid = ?";
+		$stmt = $smarty->dbh()->prepare($query);
+		$stmt->bindParam(1, $eventid, PDO::PARAM_INT);
+		$stmt->bindParam(2, $userid, PDO::PARAM_INT);
+
+		$stmt->execute();
+		if (!$stmt->fetch())
+			die("Nice try! (That's not your event.)");
 	}
-	mysql_free_result($rs);
+	catch (PDOException $e) {
+		die("sql exception: " . $e->getMessage());
+	}
 }
 
 $action = isset($_GET["action"]) ? $_GET["action"] : "";
@@ -59,9 +66,7 @@ if ($action == "insert" || $action == "update") {
 	$eventdate = $_GET["eventdate"];
 	$ts = strtotime($eventdate);
 	$recurring = (strtoupper($_GET["recurring"]) == "ON" ? 1 : 0);
-	$systemevent = (strtoupper($_GET["system"]) == "ON" ? 1 : 0);
-	if (!get_magic_quotes_gpc())
-		$description = addslashes($description);
+	$systemevent = (strtoupper($_GET["systemevent"]) == "ON" ? 1 : 0);
 		
 	$haserror = false;
 	if ($description == "") {
@@ -75,21 +80,36 @@ if ($action == "insert" || $action == "update") {
 }
 
 if ($action == "delete") {
-	$query = "DELETE FROM {$OPT["table_prefix"]}events WHERE eventid = $eventid";
-	mysql_query($query) or die("Could not query: " . mysql_error());
-	header("Location: " . getFullPath("event.php?message=Event+deleted."));
-	exit;
+	try {
+		$stmt = $smarty->dbh()->prepare("DELETE FROM {$opt["table_prefix"]}events WHERE eventid = ?");
+		$stmt->bindParam(1, $eventid, PDO::PARAM_INT);
+
+		$stmt->execute();
+
+		header("Location: " . getFullPath("event.php?message=Event+deleted."));
+		exit;
+	}
+	catch (PDOException $e) {
+		die("sql exception: " . $e->getMessage());
+	}
 }
 else if ($action == "edit") {
-	$query = "SELECT description, eventdate, recurring, userid FROM {$OPT["table_prefix"]}events WHERE eventid = $eventid";
-	$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-	if ($row = mysql_fetch_array($rs,MYSQL_ASSOC)) {
+	try {
+		$stmt = $smarty->dbh()->prepare("SELECT description, eventdate, recurring, userid FROM {$opt["table_prefix"]}events WHERE eventid = ?");
+		$stmt->bindParam(1, $eventid, PDO::PARAM_INT);
+		
+		$stmt->execute();
+
+		// we know this will work, see above.
+		$row = $stmt->fetch();
 		$description = $row["description"];
 		$eventdate = $row["eventdate"];
 		$recurring = $row["recurring"];
 		$systemevent = ($row["userid"] == "");
 	}
-	mysql_free_result($rs);
+	catch (PDOException $e) {
+		die("sql exception: " . $e->getMessage());
+	}
 }
 else if ($action == "") {
 	$description = "";
@@ -99,67 +119,95 @@ else if ($action == "") {
 }
 else if ($action == "insert") {
 	if (!$haserror) {
-		$query = "INSERT INTO {$OPT["table_prefix"]}events(userid,description,eventdate,recurring) " .
-					"VALUES(" . ($systemevent ? "NULL" : $userid) . ",'$description','" . strftime("%Y-%m-%d", $ts) . "',$recurring)";
-		mysql_query($query) or die("Could not query: " . mysql_error());
-		header("Location: " . getFullPath("event.php?message=Event+added."));
-		exit;
+		try {
+			$stmt = $smarty->dbh()->prepare("INSERT INTO {$opt["table_prefix"]}events(userid,description,eventdate,recurring) VALUES(?, ?, ?, ?)");
+			$stmt->bindValue(1, $systemevent ? NULL : $userid, PDO::PARAM_BOOL);
+			$stmt->bindParam(2, $description, PDO::PARAM_STR);
+			$stmt->bindValue(3, strftime("%Y-%m-%d", $ts), PDO::PARAM_STR);
+			$stmt->bindParam(4, $recurring, PDO::PARAM_BOOL);
+
+			$stmt->execute();
+		
+			header("Location: " . getFullPath("event.php?message=Event+added."));
+			exit;
+		}
+		catch (PDOException $e) {
+			die("sql exception: " . $e->getMessage());
+		}
 	}
 }
 else if ($action == "update") {
 	if (!$haserror) {
-		$query = "UPDATE {$OPT["table_prefix"]}events SET " .
-				"userid = " . ($systemevent ? "NULL" : $userid) . ", " .
-				"description = '$description', " .
-				"eventdate = '" . strftime("%Y-%m-%d", $ts) . "', " .
-				"recurring = $recurring " . 
-				"WHERE eventid = $eventid";
-		mysql_query($query) or die("Could not query: " . mysql_error());
-		header("Location: " . getFullPath("event.php?message=Event+updated."));
-		exit;		
+		try {
+			$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}events SET " .
+				"userid = ?, " .
+				"description = ?, " .
+				"eventdate = ?, " .
+				"recurring = ? " . 
+				"WHERE eventid = ?");
+			$stmt->bindValue(1, $systemevent ? NULL : $userid, PDO::PARAM_BOOL);
+			$stmt->bindParam(2, $description, PDO::PARAM_STR);
+			$stmt->bindValue(3, strftime("%Y-%m-%d", $ts), PDO::PARAM_STR);
+			$stmt->bindParam(4, $recurring, PDO::PARAM_BOOL);
+			$stmt->bindParam(5, $eventid, PDO::PARAM_INT);
+
+			$stmt->execute();
+
+			header("Location: " . getFullPath("event.php?message=Event+updated."));
+			exit;
+		}
+		catch (PDOException $e) {
+			die("sql exception: " . $e->getMessage());
+		}
 	}
 }
 else {
-	echo "Unknown verb.";
-	exit;
+	die("Unknown verb.");
 }
 
-$query = "SELECT eventid, userid, description, eventdate, recurring " .
-			"FROM {$OPT["table_prefix"]}events " .
-			"WHERE userid = $userid";
-if ($_SESSION["admin"] == 1)
-	$query .= " OR userid IS NULL";		// add in system events
-$query .= " ORDER BY userid, eventdate";
-$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-$events = array();
-while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
-	$row['eventdate'] = strftime("%m/%d/%Y", strtotime($row['eventdate']));
-	$events[] = $row;
-}
-mysql_free_result($events);
+try {
+	$query = "SELECT eventid, userid, description, eventdate, recurring " .
+			"FROM {$opt["table_prefix"]}events " .
+			"WHERE userid = ?";
+	if ($_SESSION["admin"] == 1)
+		$query .= " OR userid IS NULL";		// add in system events
+	$query .= " ORDER BY userid, eventdate";
+	$stmt = $smarty->dbh()->prepare($query);
+	$stmt->bindParam(1, $userid, PDO::PARAM_INT);
 
-define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
-require_once(SMARTY_DIR . 'Smarty.class.php');
-$smarty = new Smarty();
-if (isset($message)) {
-	$smarty->assign('message', $message);
+	$stmt->execute();
+
+	$events = array();
+	while ($row = $stmt->fetch()) {
+		$row['eventdate'] = strftime("%m/%d/%Y", strtotime($row['eventdate']));
+		$events[] = $row;
+	}
+
+	if (isset($message)) {
+		$smarty->assign('message', $message);
+	}
+	$smarty->assign('action', $action);
+	$smarty->assign('haserror', $haserror);
+	$smarty->assign('events', $events);
+	$smarty->assign('eventdate', strftime("%m/%d/%Y", strtotime($eventdate)));
+	if (isset($eventdate_error)) {
+		$smarty->assign('eventdate_error', $eventdate_error);
+	}
+	$smarty->assign('description', $description);
+	if (isset($description_error)) {
+		$smarty->assign('description_error', $description_error);
+	}
+	$smarty->assign('recurring', $recurring);
+	$smarty->assign('systemevent', $systemevent);
+	if (isset($eventid)) {
+		$smarty->assign('eventid', $eventid);
+	}
+	$smarty->assign('userid', $userid);
+	$smarty->assign('isadmin', $_SESSION['admin']);
+	$smarty->assign('opt', $smarty->opt());
+	$smarty->display('event.tpl');
 }
-$smarty->assign('action', $action);
-$smarty->assign('haserror', $haserror);
-$smarty->assign('events', $events);
-$smarty->assign('eventdate', strftime("%m/%d/%Y", strtotime($eventdate)));
-if (isset($eventdate_error)) {
-	$smarty->assign('eventdate_error', $eventdate_error);
+catch (PDOException $e) {
+	die("sql exception: " . $e->getMessage());
 }
-$smarty->assign('description', $description);
-if (isset($description_error)) {
-	$smarty->assign('description_error', $description_error);
-}
-$smarty->assign('recurring', $recurring);
-$smarty->assign('systemevent', $systemevent);
-$smarty->assign('eventid', $eventid);
-$smarty->assign('userid', $userid);
-$smarty->assign('isadmin', $_SESSION['admin']);
-$smarty->assign('opt', $OPT);
-$smarty->display('event.tpl');
 ?>

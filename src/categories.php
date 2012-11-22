@@ -13,9 +13,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include("config.php");
-include("db.php");
-include("funcLib.php");
+require_once(dirname(__FILE__) . "/includes/funcLib.php");
+require_once(dirname(__FILE__) . "/includes/MySmarty.class.php");
+$smarty = new MySmarty();
+$opt = $smarty->opt();
 
 session_start();
 if (!isset($_SESSION["userid"])) {
@@ -30,7 +31,7 @@ else {
 	$userid = $_SESSION["userid"];
 }
 if (!empty($_GET["message"])) {
-    $message = strip_tags($_GET["message"]);
+    $message = $_GET["message"];
 }
 
 $action = $_GET["action"];
@@ -38,8 +39,6 @@ $action = $_GET["action"];
 if ($action == "insert" || $action == "update") {
 	/* validate the data. */
 	$category = trim($_GET["category"]);
-	if (!get_magic_quotes_gpc())
-		$category = addslashes($category);
 		
 	$haserror = false;
 	if ($category == "") {
@@ -50,66 +49,73 @@ if ($action == "insert" || $action == "update") {
 
 if ($action == "delete") {
 	/* first, NULL all category FKs for items that use this category. */
-	$query = "UPDATE {$OPT["table_prefix"]}items SET category = NULL WHERE category = " . addslashes($_GET["categoryid"]);
-	mysql_query($query) or die("Could not query: " . mysql_error());
-	$query = "DELETE FROM {$OPT["table_prefix"]}categories WHERE categoryid = " . addslashes($_GET["categoryid"]);
-	mysql_query($query) or die("Could not query: " . mysql_error());
+	$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}items SET category = NULL WHERE category = ?");
+	$stmt->bindValue(1, (int) $_GET["categoryid"], PDO::PARAM_INT);
+	$stmt->execute();
+
+	$stmt = $smarty->dbh()->prepare("DELETE FROM {$opt["table_prefix"]}categories WHERE categoryid = ?");
+	$stmt->bindValue(1, (int) $_GET["categoryid"], PDO::PARAM_INT);
+	$stmt->execute();
+	
 	header("Location: " . getFullPath("categories.php?message=Category+deleted."));
 	exit;
 }
 else if ($action == "edit") {
-	$query = "SELECT category FROM {$OPT["table_prefix"]}categories WHERE categoryid = " . addslashes($_GET["categoryid"]);
-	$rs = mysql_query($query) or die("Could not query: " . mysql_error());
-	if ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+	$stmt = $smarty->dbh()->prepare("SELECT category FROM {$opt["table_prefix"]}categories WHERE categoryid = ?");
+	$stmt->bindValue(1, (int) $_GET["categoryid"], PDO::PARAM_INT);
+	$stmt->execute();
+	if ($row = $stmt->fetch()) {
 		$category = $row["category"];
 	}
-	mysql_free_result($rs);
 }
 else if ($action == "") {
 	$category = "";
 }
 else if ($action == "insert") {
 	if (!$haserror) {
-		$query = "INSERT INTO {$OPT["table_prefix"]}categories(categoryid,category) " .
-					"VALUES(NULL,'$category')";
-		mysql_query($query) or die("Could not query: " . mysql_error());
+		$stmt = $smarty->dbh()->prepare("INSERT INTO {$opt["table_prefix"]}categories(categoryid,category) VALUES(NULL, ?)");
+		$stmt->bindParam(1, $category, PDO::PARAM_STR);
+		$stmt->execute();
+		
 		header("Location: " . getFullPath("categories.php?message=Category+added."));
 		exit;
 	}
 }
 else if ($action == "update") {
 	if (!$haserror) {
-		$query = "UPDATE {$OPT["table_prefix"]}categories " .
-					"SET category = '$category' " .
-					"WHERE categoryid = " . addslashes($_GET["categoryid"]);
-		mysql_query($query) or die("Could not query: " . mysql_error());
+		$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}categories " .
+					"SET category = ? " .
+					"WHERE categoryid = ?");
+		$stmt->bindParam(1, $category, PDO::PARAM_STR);
+		$stmt->bindValue(2, (int) $_GET["categoryid"], PDO::PARAM_INT);
+		$stmt->execute();
+		
 		header("Location: " . getFullPath("categories.php?message=Category+updated."));
 		exit;		
 	}
 }
 else {
-	echo "Unknown verb.";
-	exit;
+	die("Unknown verb.");
 }
 
-$query = "SELECT c.categoryid, c.category, COUNT(itemid) AS itemsin " .
-			"FROM {$OPT["table_prefix"]}categories c " .
-			"LEFT OUTER JOIN {$OPT["table_prefix"]}items i ON i.category = c.categoryid " .
+$stmt = $smarty->dbh()->prepare("SELECT c.categoryid, c.category, COUNT(itemid) AS itemsin " .
+			"FROM {$opt["table_prefix"]}categories c " .
+			"LEFT OUTER JOIN {$opt["table_prefix"]}items i ON i.category = c.categoryid " .
 			"GROUP BY c.categoryid, category " .
-			"ORDER BY category";
-$rs = mysql_query($query) or die("Could not query: " . mysql_error());
+			"ORDER BY category");
+$stmt->execute();
 $categories = array();
-while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
+while ($row = $stmt->fetch()) {
 	$categories[] = $row;
 }
-mysql_free_result($rs);
 
-define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
-require_once(SMARTY_DIR . 'Smarty.class.php');
-$smarty = new Smarty();
-$smarty->assign('action', $action);
+if (isset($action)) {
+	$smarty->assign('action', $action);
+}
 $smarty->assign('categories', $categories);
-$smarty->assign('categoryid', addslashes($_GET["categoryid"]));
+if (isset($_GET["categoryid"])) {
+	$smarty->assign('categoryid', (int) $_GET["categoryid"]);
+}
 if (isset($message)) {
 	$smarty->assign('message', $message);
 }
@@ -119,6 +125,6 @@ if (isset($category_error)) {
 }
 $smarty->assign('haserror', $haserror);
 $smarty->assign('isadmin', $_SESSION["admin"]);
-$smarty->assign('opt', $OPT);
+$smarty->assign('opt', $smarty->opt());
 $smarty->display('categories.tpl');
 ?>

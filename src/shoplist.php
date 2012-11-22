@@ -13,9 +13,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include("config.php");
-include("db.php");
-include("funcLib.php");
+require_once(dirname(__FILE__) . "/includes/funcLib.php");
+require_once(dirname(__FILE__) . "/includes/MySmarty.class.php");
+$smarty = new MySmarty();
+$opt = $smarty->opt();
 
 session_start();
 if (!isset($_SESSION["userid"])) {
@@ -50,38 +51,42 @@ switch($sort) {
 	default:
 		$sortby = "source, fullname, rankorder DESC";
 }
-	
 
-$query = "SELECT description, source, price, i.comment, a.quantity, a.quantity * i.price AS total, rendered, fullname " .
-			"FROM {$OPT["table_prefix"]}items i " .
-			"INNER JOIN {$OPT["table_prefix"]}users u ON u.userid = i.userid " .
-			"INNER JOIN {$OPT["table_prefix"]}ranks r ON r.ranking = i.ranking " .
-			"INNER JOIN {$OPT["table_prefix"]}allocs a ON a.userid = $userid AND a.itemid = i.itemid AND bought = 0 " .
-			"ORDER BY $sortby";
-$rs = mysql_query($query) or die("Could not query $query: " . mysql_error());
-$shoplist = array();
-$totalprice = 0;
-while ($row = mysql_fetch_array($rs, MYSQL_ASSOC)) {
-	$totalprice += $row["total"];
-	if ($row["quantity"] == 1) {
-		$row["price"] = formatPrice($row["price"]);
+try {
+	// not worried about sql injection here since $sortby is a function of $sort, which falls through.
+	$stmt = $smarty->dbh()->prepare("SELECT description, source, price, i.comment, a.quantity, a.quantity * i.price AS total, rendered, fullname " .
+				"FROM {$opt["table_prefix"]}items i " .
+				"INNER JOIN {$opt["table_prefix"]}users u ON u.userid = i.userid " .
+				"INNER JOIN {$opt["table_prefix"]}ranks r ON r.ranking = i.ranking " .
+				"INNER JOIN {$opt["table_prefix"]}allocs a ON a.userid = ? AND a.itemid = i.itemid AND bought = 0 " .
+				"ORDER BY " . $sortby);
+	$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+
+	$stmt->execute();
+	$shoplist = array();
+	$totalprice = 0;
+	$itemcount = 0;
+	while ($row = $stmt->fetch()) {
+		$totalprice += $row["total"];
+		++$itemcount;
+		if ($row["quantity"] == 1) {
+			$row["price"] = formatPrice($row["price"], $opt);
+		}
+		else {
+			$row["price"] = $row["quantity"] . " @ " . formatPrice($row["price"], $opt) . " = " . formatPrice($row["total"], $opt);
+		}
+		$shoplist[] = $row;
 	}
-	else {
-		$row["price"] = $row["quantity"] . " @ " . formatPrice($row["price"]) . " = " . formatPrice($row["total"]);
-	}
-	$shoplist[] = $row;
+
+	$smarty->assign('shoplist', $shoplist);
+	$smarty->assign('totalprice', formatPrice($totalprice, $opt));
+	$smarty->assign('itemcount', $itemcount);
+	$smarty->assign('userid', $userid);
+	$smarty->assign('isadmin', $_SESSION["admin"]);
+	$smarty->assign('opt', $smarty->opt());
+	$smarty->display('shoplist.tpl');
 }
-$itemcount = mysql_num_rows($rs);
-mysql_free_result($rs);
-
-define('SMARTY_DIR',str_replace("\\","/",getcwd()).'/includes/Smarty-3.1.12/libs/');
-require_once(SMARTY_DIR . 'Smarty.class.php');
-$smarty = new Smarty();
-$smarty->assign('shoplist', $shoplist);
-$smarty->assign('totalprice', formatPrice($totalprice));
-$smarty->assign('itemcount', $itemcount);
-$smarty->assign('userid', $userid);
-$smarty->assign('isadmin', $_SESSION["admin"]);
-$smarty->assign('opt', $OPT);
-$smarty->display('shoplist.tpl');
+catch (PDOException $e) {
+	die("sql exception: " . $e->getMessage());
+}
 ?>

@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	{if isset($message)}
 		<div class="row">
 			<div class="span12">
-    			<div class="alert alert-info">
+    			<div class="alert alert-block">
 					{$message|escape:'htmlall'}
 				</div>
 			</div>
