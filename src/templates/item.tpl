@@ -137,15 +137,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 							<div class="controls">
 								{if $image_filename == ''}
 									<input type="radio" name="image" value="none" CHECKED>
-									No image.
+									No image.<br />
 									<input type="radio" name="image" value="upload">
 									Upload image:
 									<input type="file" name="imagefile">
 								{else}
 									<input type="radio" name="image" value="remove">
-									Remove existing image.
+									Remove existing image.<br />
 									<input type="radio" name="image" value="keep" CHECKED>
-									Keep existing image.
+									Keep existing image.<br />
 									<input type="radio" name="image" value="replace">
 									Replace existing image:
 									<input type="file" name="imagefile">
