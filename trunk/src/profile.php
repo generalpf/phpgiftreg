@@ -89,8 +89,6 @@ try {
 		$smarty->assign('email', $row["email"]);
 		$smarty->assign('email_msgs', $row["email_msgs"]);
 		$smarty->assign('comment', $row["comment"]);
-		$smarty->assign('isadmin', $_SESSION["admin"]);
-		$smarty->assign('opt', $smarty->opt());
 		$smarty->display('profile.tpl');
 	}
 	else {

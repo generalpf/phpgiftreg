@@ -81,8 +81,6 @@ try {
 	$smarty->assign('totalprice', formatPrice($totalprice, $opt));
 	$smarty->assign('itemcount', $itemcount);
 	$smarty->assign('userid', $userid);
-	$smarty->assign('isadmin', $_SESSION["admin"]);
-	$smarty->assign('opt', $smarty->opt());
 	$smarty->display('mylist.tpl');
 }
 catch (PDOException $e) {

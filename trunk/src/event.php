@@ -203,8 +203,6 @@ try {
 		$smarty->assign('eventid', $eventid);
 	}
 	$smarty->assign('userid', $userid);
-	$smarty->assign('isadmin', $_SESSION['admin']);
-	$smarty->assign('opt', $smarty->opt());
 	$smarty->display('event.tpl');
 }
 catch (PDOException $e) {

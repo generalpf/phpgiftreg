@@ -283,7 +283,5 @@ if (isset($approval)) {
 	$smarty->assign('approval', $approval);
 }
 $smarty->assign('userid', $userid);
-$smarty->assign('isadmin', $_SESSION['admin']);
-$smarty->assign('opt', $smarty->opt());
 $smarty->display('home.tpl');
 ?>

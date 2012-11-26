@@ -58,8 +58,6 @@ try {
 	$smarty->assign('recipients', $recipients);
 	$smarty->assign('rcount', $rcount);
 	$smarty->assign('userid', $userid);
-	$smarty->assign('isadmin', $_SESSION["admin"]);
-	$smarty->assign('opt', $smarty->opt());
 	$smarty->display('message.tpl');
 }
 catch (PDOException $e) {

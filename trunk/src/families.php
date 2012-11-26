@@ -185,8 +185,6 @@ try {
 	if (isset($message)) {
 		$smarty->assign('message', $message);
 	}
-	$smarty->assign('isadmin', $_SESSION["admin"]);
-	$smarty->assign('opt', $smarty->opt());
 	$smarty->display('families.tpl');
 }
 catch (PDOException $e) {

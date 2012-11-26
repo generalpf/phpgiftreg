@@ -105,8 +105,6 @@ try {
 	$smarty->assign('quantity', $quantity);
 	$smarty->assign('itemid', $itemid);
 	$smarty->assign('userid', $userid);
-	$smarty->assign('isadmin', $_SESSION["admin"]);
-	$smarty->assign('opt', $smarty->opt());
 	$smarty->display('receive.tpl');
 }
 catch (PDOException $e) {

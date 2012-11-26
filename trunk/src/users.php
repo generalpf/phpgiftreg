@@ -109,7 +109,6 @@ else if ($action == "edit") {
 		$approved = $row["approved"];
 		$userisadmin = $row["admin"];
 	}
-	mysql_free_result($rs);
 }
 else if ($action == "") {
 	$username = "";
@@ -197,7 +196,6 @@ $users = array();
 while ($row = $stmt->fetch()) {
 	$users[] = $row;
 }
-mysql_free_result($rs);
 
 $smarty->assign('action', $action);
 $smarty->assign('username', $username);
@@ -223,7 +221,5 @@ if (isset($message)) {
 	$smarty->assign('message', $message);
 }
 $smarty->assign('userid', $userid);
-$smarty->assign('isadmin', $_SESSION["admin"]);
-$smarty->assign('opt', $smarty->opt());
 $smarty->display('users.tpl');
 ?>
