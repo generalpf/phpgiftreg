@@ -211,21 +211,20 @@ if (!empty($_REQUEST["action"])) {
 					"quantity = ? " .
 					($image_base_filename != "" ? ", image_filename = ? " : "") .
 					"WHERE itemid = ?");
-			$stmt->bindParam(1, $userid, PDO::PARAM_INT);
-			$stmt->bindParam(2, $description, PDO::PARAM_STR);
-			$stmt->bindParam(3, $price);
-		    $stmt->bindParam(4, $source, PDO::PARAM_STR);
-		    $stmt->bindParam(5, $category, PDO::PARAM_INT);
-		    $stmt->bindParam(6, $url, PDO::PARAM_STR);
-		    $stmt->bindParam(7, $ranking, PDO::PARAM_INT);
-		    $stmt->bindParam(8, $comment, PDO::PARAM_STR);
-		    $stmt->bindParam(9, $quantity, PDO::PARAM_INT);
+			$stmt->bindParam(1, $description, PDO::PARAM_STR);
+			$stmt->bindParam(2, $price);
+		    $stmt->bindParam(3, $source, PDO::PARAM_STR);
+		    $stmt->bindParam(4, $category, PDO::PARAM_INT);
+		    $stmt->bindParam(5, $url, PDO::PARAM_STR);
+		    $stmt->bindParam(6, $ranking, PDO::PARAM_INT);
+		    $stmt->bindParam(7, $comment, PDO::PARAM_STR);
+		    $stmt->bindParam(8, $quantity, PDO::PARAM_INT);
 		    if ($image_base_filename != "") {
-				$stmt->bindParam(10, $image_base_filename, PDO::PARAM_STR);
-				$stmt->bindParam(11, (int) $_REQUEST["itemid"], PDO::PARAM_INT);
+				$stmt->bindParam(9, $image_base_filename, PDO::PARAM_STR);
+				$stmt->bindValue(10, (int) $_REQUEST["itemid"], PDO::PARAM_INT);
 			}
 			else {
-				$stmt->bindParam(10, (int) $_REQUEST["itemid"], PDO::PARAM_INT);
+				$stmt->bindValue(9, (int) $_REQUEST["itemid"], PDO::PARAM_INT);
 			}
 			$stmt->execute();
 
