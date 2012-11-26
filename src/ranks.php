@@ -162,7 +162,5 @@ if (isset($rendered_error)) {
 }
 $smarty->assign('ranking', $_GET["ranking"]);
 $smarty->assign('haserror', $haserror);
-$smarty->assign('isadmin', $_SESSION["admin"]);
-$smarty->assign('opt', $smarty->opt());
 $smarty->display('ranks.tpl');
 ?>

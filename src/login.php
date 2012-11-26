@@ -50,11 +50,9 @@ if (!empty($_POST["username"])) {
 	}
 
 	$smarty->assign('username', $username);
-	$smarty->assign('opt', $smarty->opt());
 	$smarty->display('login.tpl');
 }
 else {
-	$smarty->assign('opt', $smarty->opt());
 	$smarty->display('login.tpl');
 }
 ?>

@@ -104,7 +104,5 @@ $smarty->assign('action', $_POST["action"]);
 if (isset($error)) {
 	$smarty->assign('error', $error);
 }
-$smarty->assign('isadmin', $_SESSION['admin']);
-$smarty->assign('opt', $smarty->opt());
 $smarty->display('signup.tpl');
 ?>
