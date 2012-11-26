@@ -27,12 +27,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<script src="lightbox/js/jquery.lightbox-0.5.min.js"></script>
 	
 	<script language="JavaScript" type="text/javascript">
-		function confirmUnshop(fullname) {
-			return window.confirm("Are you sure you no longer wish to shop for " + fullname + "?");
-		}
-		function confirmItemDelete(desc) {
-			return window.confirm("Are you sure you want to delete " + desc + "?");
-		}
 		$(document).ready(function() {
 			$('a[rel=lightbox]').lightBox({
 				imageLoading: 'lightbox/images/lightbox-ico-loading.gif',
@@ -41,6 +35,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 				imageBtnNext: 'lightbox/images/lightbox-btn-next.gif'
 			});
 			$('a[rel=popover]').removeAttr('href').popover();
+			{if $opt.confirm_item_deletes}
+				$('a[rel=confirmitemdelete]').click(function(event) {
+					var desc = $(this).attr('data-content');
+					if (!window.confirm('Are you sure you want to delete "' + desc + '"?')) {
+						event.preventDefault();
+					}
+				});
+			{/if}
+			{if $opt.shop_requires_approval}
+				$('a[rel=confirmunshop]').click(function(event) {
+					var fn = $(this).attr('data-content');
+					if (!window.confirm('Are you sure you no longer wish to shop for ' + fn + '?')) {
+						event.preventDefault();
+					}
+				});
+			{/if}
 		});
 	</script>
 </head>
@@ -107,7 +117,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						<td align="right">
 							<a href="receive.php?itemid={$row.itemid}"><img alt="Mark Item Received" src="images/refresh_nav.gif" border="0" title="Mark Item Received" /></a>&nbsp;
 							<a href="item.php?action=edit&itemid={$row.itemid}"><img alt="Edit Item" src="images/write_obj.gif" border="0" title="Edit Item" /></a>&nbsp;
-							<a href="item.php?action=delete&itemid={$row.itemid}"><img alt="Delete Item" src="images/remove.gif" border="0" alt="Delete" title="Delete Item" /></a>
+							<a rel="confirmitemdelete" data-content="{$row.description|escape:'htmlall'}" href="item.php?action=delete&itemid={$row.itemid}"><img alt="Delete Item" src="images/remove.gif" border="0" alt="Delete" title="Delete Item" /></a>
 						</td>
 					</tr>
 				{/foreach}
@@ -160,7 +170,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 							{if $row.itemcount > 0}
 								<a href="shop.php?shopfor={$row.userid}"><img alt="Shop for {$row.fullname|escape:'htmlall'}" src="images/tasks_tsk.gif" border="0" alt="Shop" title="Shop"></a>&nbsp;
 							{/if}
-							<a href="index.php?action=cancel&shopfor={$row.userid}" onclick="return confirmUnshop('{$row.fullname|escape:'javascript'}')"><img src="images/remove.gif" border="0" alt="Don't shop for {$row.fullname|escape:'htmlall'} anymore" title="Don't shop for {$row.fullname|escape:'htmlall'} anymore" /></a>
+							<a rel="confirmunshop" data-content="{$row.fullname|escape:'htmlall'}" href="index.php?action=cancel&shopfor={$row.userid}"><img src="images/remove.gif" border="0" alt="Don't shop for {$row.fullname|escape:'htmlall'} anymore" title="Don't shop for {$row.fullname|escape:'htmlall'} anymore" /></a>
 						</td>
 					</tr>
 				{/foreach}

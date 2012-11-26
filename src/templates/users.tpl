@@ -21,11 +21,18 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
-
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="bootstrap/js/bootstrap.min.js"></script>
+	
 	<script language="JavaScript" type="text/javascript">
-		function confirmDelete(fullname) {
-			return confirm("Are you sure you want to delete " + fullname + "?");
-		}
+		$(document).ready(function() {
+			$('a[rel=confirmdeleteuser]').click(function(event) {
+				var u = $(this).attr('data-content');
+				if (!window.confirm('Are you sure you want to delete ' + u + '?')) {
+					event.preventDefault();
+				}
+			});
+		});
 	</script>
 </head>
 <body>
@@ -67,7 +74,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 									<td>{if $row.admin}Yes{else}No{/if}</td>
 									<td align="right">
 										<a href="users.php?action=edit&userid={$row.userid}#userform"><img alt="Edit User" src="images/write_obj.gif" border="0" title="Edit User" /></a> /
-										<a onClick="return confirmDelete('{$row.fullname|escape:'htmlall'}');" href="users.php?action=delete&userid={$row.userid}"><img alt="Delete User" src="images/remove.gif" border="0" title="Delete User" /></a> /
+										<a rel="confirmdeleteuser" data-content="{$row.fullname|escape:'htmlall'}" href="users.php?action=delete&userid={$row.userid}"><img alt="Delete User" src="images/remove.gif" border="0" title="Delete User" /></a> /
 										{if $row.email != ''}
 											<a href="users.php?action=reset&userid={$row.userid}&email={$row.email|escape:'htmlall'}">Reset Pwd</a>
 										{else}
@@ -142,7 +149,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 			</div>
 		</div>
 	</div>
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-	<script src="bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>
