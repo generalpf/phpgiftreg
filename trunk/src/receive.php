@@ -30,12 +30,15 @@ else {
 $action = (!empty($_GET["action"]) ? $_GET["action"] : "");
 $itemid = (int) $_GET["itemid"];
 
-// get details.  is this a single-quantity item?
+// get details. is it our item? is this a single-quantity item?
 try {
-	$stmt = $smarty->dbh()->prepare("SELECT quantity FROM {$opt["table_prefix"]}items WHERE itemid = ?");
+	$stmt = $smarty->dbh()->prepare("SELECT userid, quantity FROM {$opt["table_prefix"]}items WHERE itemid = ?");
 	$stmt->bindParam(1, $itemid, PDO::PARAM_INT);
 	$stmt->execute();
 	if ($row = $stmt->fetch()) {
+		if ($row["userid"] != $userid)
+			die("That's not your item!");
+
 		$quantity = $row["quantity"];
 	}
 	else {
