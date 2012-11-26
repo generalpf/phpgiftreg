@@ -69,7 +69,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						</div>
 						<div class="form-actions">
 							<button type="submit" class="btn btn-primary" onClick="return validate();">Submit</button>
-							<button type="button" class="btn" onClick="document.location.href=='login.php';">Cancel</button>
+							<button type="button" class="btn" onClick="document.location.href='login.php';">Cancel</button>
 						</div>
 					</fieldset>
 				</form>
