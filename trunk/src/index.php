@@ -138,7 +138,7 @@ $stmt->bindParam(1, $userid, PDO::PARAM_INT);
 $stmt->execute();
 $shoppees = array();
 while ($row = $stmt->fetch()) {
-	$row['list_stamp'] = ($row['list_stamp == 0'] ? '-' : strftime("%m/%d/%Y", strtotime($row['list_stamp'])));
+	$row['list_stamp'] = ($row['list_stamp == 0'] ? '-' : strftime($opt["date_format"], strtotime($row['list_stamp'])));
 	$shoppees[] = $row;
 }
 
@@ -173,7 +173,7 @@ $stmt->bindParam(1, $userid, PDO::PARAM_INT);
 $stmt->execute();
 $messages = array();
 while ($row = $stmt->fetch()) {
-	$row['created'] = strftime("%m/%d/%Y", strtotime($row['created']));
+	$row['created'] = strftime($opt["date_format"], strtotime($row['created']));
 	$messages[] = $row;
 }
 
@@ -218,7 +218,7 @@ while ($row = $stmt->fetch()) {
 			'fullname' => $event_fullname,
 			'eventname' => $row['description'],
 			'daysleft' => $days_left,
-			'date' => strftime("%m/%d/%Y", $event_date)
+			'date' => strftime($opt["date_format"], $event_date)
 		);
 		$events[] = $thisevent;
 	}

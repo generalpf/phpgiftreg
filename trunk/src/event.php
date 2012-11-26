@@ -179,7 +179,7 @@ try {
 
 	$events = array();
 	while ($row = $stmt->fetch()) {
-		$row['eventdate'] = strftime("%m/%d/%Y", strtotime($row['eventdate']));
+		$row['eventdate'] = strftime($opt["date_format"], strtotime($row['eventdate']));
 		$events[] = $row;
 	}
 
@@ -189,7 +189,7 @@ try {
 	$smarty->assign('action', $action);
 	$smarty->assign('haserror', $haserror);
 	$smarty->assign('events', $events);
-	$smarty->assign('eventdate', strftime("%m/%d/%Y", strtotime($eventdate)));
+	$smarty->assign('eventdate', strftime($opt["date_format"], strtotime($eventdate)));
 	if (isset($eventdate_error)) {
 		$smarty->assign('eventdate_error', $eventdate_error);
 	}

@@ -21,8 +21,8 @@ function getGlobalOptions() {
 		"pdo_connection_string" => "mysql:host=localhost;dbname=giftreg",
 
 		/* The database username and password. */
-		"pdo_username" => "dbusername",
-		"pdo_password" => "dbpassword",
+		"pdo_username" => "giftreg",
+		"pdo_password" => "cn3Malk",
 
 		/* The maximum number of days before an event which produces a notification. */
 		"event_threshold" => "60",
@@ -49,7 +49,7 @@ function getGlobalOptions() {
 		"email_from" => "webmaster@" . $_SERVER['SERVER_NAME'],
 
 		/* The e-mail Reply-To: header. */
-		"email_reply_to" => "your@address.com",
+		"email_reply_to" => "rwalberg@mts.net",
 
 		/* The e-mail X-Mailer header. */
 		"email_xmailer" => "PHP/" . phpversion(),
@@ -77,6 +77,9 @@ function getGlobalOptions() {
 		//"currency_symbol" => "&#165;",	// Yen
 		//"currency_symbol" => "&#8364;",	// Euro
 		//"currency_symbol" => "&euro;",	// Euro alternative
+
+		/* The date format used in PHP's strftime function. */
+		"date_format" => "%m/%d/%Y",
 
 		/* If this is set to something other than "" then phpgiftreg will expect that
 			string to prefix all tables in this installation.  Useful for running
@@ -109,7 +112,7 @@ function getGlobalOptions() {
 				UPDATE users SET password = MD5(password)
 			on your database to convert the passwords.  This operation is NON-REVERSIBLE!
 		*/
-		"password_hasher" => "SHA1",
+		"password_hasher" => "MD5",
 
 		/* Whether or not to allow image uploads.  If on, the next option must point to
 			a valid subdirectory that is writeable by the web server.  The setup.php
