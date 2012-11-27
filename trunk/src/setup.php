@@ -25,7 +25,7 @@ $stmt = dbh($opt)->prepare("SELECT COUNT(*) AS user_count FROM {$opt["table_pref
 $stmt->execute();
 if ($row = $stmt->fetch()) {
 	$user_count = $row["user_count"];
-	if (false && $user_count != 0) {
+	if ($user_count != 0) {
 		die("Database has already been set up.");
 	}
 }
