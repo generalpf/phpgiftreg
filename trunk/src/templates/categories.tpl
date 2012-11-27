@@ -64,9 +64,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 									<td>{$row.category|escape:'htmlall'}</td>
 									<td>{$row.itemsin}</td>
 									<td>
-										<a href="categories.php?action=edit&categoryid={$row.categoryid}#catform"><img src="images/write_obj.gif" border="0" title="Edit Category" alt="Edit Category" /></a>
-										/
-										<a href="categories.php?action=delete&categoryid={$row.categoryid}"><img src="images/remove.gif" border="0" title="Delete Category" alt="Delete Category" /></a>
+										<a href="categories.php?action=edit&categoryid={$row.categoryid}#catform"><img src="images/pencil.png" border="0" title="Edit Category" alt="Edit Category" /></a>
+										<a href="categories.php?action=delete&categoryid={$row.categoryid}"><img src="images/bin.png" border="0" title="Delete Category" alt="Delete Category" /></a>
 									</td>
 								</tr>
 							{/foreach}

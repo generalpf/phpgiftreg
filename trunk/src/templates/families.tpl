@@ -63,9 +63,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 									<td>{$row.familyname|escape:'htmlall'}</td>
 									<td>{$row.members}</td>
 									<td>
-										<a href="families.php?action=edit&familyid={$row.familyid}#familyform"><img src="images/write_obj.gif" alt="Edit Family" title="Edit Family" border="0" /></a>
-										/
-										<a href="families.php?action=delete&familyid={$row.familyid}"><img src="images/remove.gif" alt="Delete Family" title="Delete Family" border="0" /></a>
+										<a href="families.php?action=edit&familyid={$row.familyid}#familyform"><img src="images/pencil.png" alt="Edit Family" title="Edit Family" border="0" /></a>
+										<a href="families.php?action=delete&familyid={$row.familyid}"><img src="images/bin.png" alt="Delete Family" title="Delete Family" border="0" /></a>
 									</td>
 								</tr>
 							{/foreach}
