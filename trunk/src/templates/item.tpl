@@ -40,9 +40,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						required: true,
 						maxlength: 255
 					},
-					category: {
+					/*category: {
 						required: true
-					},
+					},*/
 					price: {
 						required: true,
 						min: 0,
@@ -69,9 +69,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						required: "The item's description is required.",
 						maxlength: "The item's description must be 255 characters or less."
 					},
-					category: {
+					/*category: {
 						required: "A category must be selected."
-					},
+					},*/
 					price: {
 						required: "The item's price is required.",
 						min: "Price can't be a negative number.",
