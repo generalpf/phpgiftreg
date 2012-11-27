@@ -113,7 +113,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 									</td>
 								{/if}
 								<td>
-									<a href="event.php?action=edit&eventid={$row.eventid}"><img alt="Edit Event" src="images/write_obj.gif" border="0" title="Edit Event" /></a>&nbsp;<a href="event.php?action=delete&eventid={$row.eventid}"><img alt="Delete Event" src="images/remove.gif" border="0" title="Delete Event" /></a>
+									<a href="event.php?action=edit&eventid={$row.eventid}"><img alt="Edit Event" src="images/pencil.png" border="0" title="Edit Event" /></a>&nbsp;<a href="event.php?action=delete&eventid={$row.eventid}"><img alt="Delete Event" src="images/bin.png" border="0" title="Delete Event" /></a>
 								</td>
 							</tr>
 						{/foreach}

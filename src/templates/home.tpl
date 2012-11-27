@@ -74,7 +74,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<li>You can click the column headers to sort by that attribute.</li>
 					<li>List each item seperately on your list - do not combine items. (i.e. list each book of a 4-part series separately.)</li>
 					<li>Once you've bought or decided not to buy an item, remember to return to the recipient's gift lists and mark it accordingly.</li>
-					<li>If someone purchases an item on your list, click <img src="images/refresh_nav.gif" /> to mark it as received.</li>
+					<li>If someone purchases an item on your list, click <img src="images/return.png" /> to mark it as received.</li>
 				</ul>
 				</div>
 			</div>
@@ -105,19 +105,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 								<a class="btn btn-small" rel="popover" href="#" data-placement="right" data-original-title="Comment" data-content="{$row.comment|escape:'htmlall'}">...</a>
 							{/if}
 							{if $row.url != ''}
-								<a href="{$row.url|escape:'htmlall'}" target="_blank"><img src="images/links_view.gif" border="0" alt="URL" title="URL"></a>
+								<a href="{$row.url|escape:'htmlall'}" target="_blank"><img src="images/link.png" border="0" alt="URL" title="URL"></a>
 							{/if}
 							{if $row.image_filename != '' && $opt.allow_images}
-								<a rel="lightbox" href="{$opt.image_subdir}/{$row.image_filename}"><img src="images/image_obj.gif" border="0" alt="Image" /></a>
+								<a rel="lightbox" href="{$opt.image_subdir}/{$row.image_filename}"><img src="images/image.png" border="0" alt="Image" /></a>
 							{/if}
 						</td>
 						<td nowrap>{$row.rendered}</td>
 						<td>{$row.category|default:"&nbsp;"}</td>
 						<td align="right">{$row.price}</td>
 						<td align="right">
-							<a href="receive.php?itemid={$row.itemid}"><img alt="Mark Item Received" src="images/refresh_nav.gif" border="0" title="Mark Item Received" /></a>&nbsp;
-							<a href="item.php?action=edit&itemid={$row.itemid}"><img alt="Edit Item" src="images/write_obj.gif" border="0" title="Edit Item" /></a>&nbsp;
-							<a rel="confirmitemdelete" data-content="{$row.description|escape:'htmlall'}" href="item.php?action=delete&itemid={$row.itemid}"><img alt="Delete Item" src="images/remove.gif" border="0" alt="Delete" title="Delete Item" /></a>
+							<a href="receive.php?itemid={$row.itemid}"><img alt="Mark Item Received" src="images/return.png" border="0" title="Mark Item Received" /></a>&nbsp;
+							<a href="item.php?action=edit&itemid={$row.itemid}"><img alt="Edit Item" src="images/pencil.png" border="0" title="Edit Item" /></a>&nbsp;
+							<a rel="confirmitemdelete" data-content="{$row.description|escape:'htmlall'}" href="item.php?action=delete&itemid={$row.itemid}"><img alt="Delete Item" src="images/bin.png" border="0" alt="Delete" title="Delete Item" /></a>
 						</td>
 					</tr>
 				{/foreach}
@@ -168,9 +168,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						<td align="right">{$row.itemcount}</td>
 						<td align="right">
 							{if $row.itemcount > 0}
-								<a href="shop.php?shopfor={$row.userid}"><img alt="Shop for {$row.fullname|escape:'htmlall'}" src="images/tasks_tsk.gif" border="0" alt="Shop" title="Shop"></a>&nbsp;
+								<a href="shop.php?shopfor={$row.userid}"><img alt="Shop for {$row.fullname|escape:'htmlall'}" src="images/store.png" border="0" alt="Shop" title="Shop"></a>&nbsp;
 							{/if}
-							<a rel="confirmunshop" data-content="{$row.fullname|escape:'htmlall'}" href="index.php?action=cancel&shopfor={$row.userid}"><img src="images/remove.gif" border="0" alt="Don't shop for {$row.fullname|escape:'htmlall'} anymore" title="Don't shop for {$row.fullname|escape:'htmlall'} anymore" /></a>
+							<a rel="confirmunshop" data-content="{$row.fullname|escape:'htmlall'}" href="index.php?action=cancel&shopfor={$row.userid}"><img src="images/bin.png" border="0" alt="Don't shop for {$row.fullname|escape:'htmlall'} anymore" title="Don't shop for {$row.fullname|escape:'htmlall'} anymore" /></a>
 						</td>
 					</tr>
 				{/foreach}
@@ -194,13 +194,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 								<td>{$row.fullname|escape:'htmlall'}</td>
 								<td align="right">
 									{if $row.pending}
-										<a href="index.php?action=cancel&shopfor={$row.userid}">Cancel</a>
+										<a href="index.php?action=cancel&shopfor={$row.userid}"><img src="images/delete.png" border="0" alt="Cancel" title="Cancel" /></a>
 									{else}
 										<a href="index.php?action=request&shopfor={$row.userid}">
 											{if $opt.shop_requires_approval}
-												Request
+												<img src="images/cloud-add.png" border="0" alt="Request" title="Request" />
 											{else}
-												Add
+												<img src="images/cloud-add.png" border="0" alt="Add" title="Add" />	
 											{/if}
 										</a>
 									{/if}
@@ -234,7 +234,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 								<td>{$row.fullname|escape:'htmlall'}</td>
 								<td>{$row.message|escape:'htmlall'}</td>
 								<td align="right">
-									<a href="index.php?action=ack&messageid={$row.messageid}"><img alt="Acknowledge" title="Acknowledge" src="images/step_done.gif" border="0"></a>
+									<a href="index.php?action=ack&messageid={$row.messageid}"><img alt="Acknowledge" title="Acknowledge" src="images/delete.png" border="0"></a>
 								</td>
 							</tr>
 						{/foreach}

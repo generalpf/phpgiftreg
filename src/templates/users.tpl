@@ -73,10 +73,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 									<td>{if $row.approved}Yes{else}No{/if}</td>
 									<td>{if $row.admin}Yes{else}No{/if}</td>
 									<td align="right">
-										<a href="users.php?action=edit&userid={$row.userid}#userform"><img alt="Edit User" src="images/write_obj.gif" border="0" title="Edit User" /></a> /
-										<a rel="confirmdeleteuser" data-content="{$row.fullname|escape:'htmlall'}" href="users.php?action=delete&userid={$row.userid}"><img alt="Delete User" src="images/remove.gif" border="0" title="Delete User" /></a> /
+										<a href="users.php?action=edit&userid={$row.userid}#userform"><img alt="Edit User" src="images/pencil.png" border="0" title="Edit User" /></a>
+										<a rel="confirmdeleteuser" data-content="{$row.fullname|escape:'htmlall'}" href="users.php?action=delete&userid={$row.userid}"><img alt="Delete User" src="images/bin.png" border="0" title="Delete User" /></a>
 										{if $row.email != ''}
-											<a href="users.php?action=reset&userid={$row.userid}&email={$row.email|escape:'htmlall'}">Reset Pwd</a>
+											<a href="users.php?action=reset&userid={$row.userid}&email={$row.email|escape:'htmlall'}"><img alt="Reset Password" src="images/key.png" border="0" title="Reset Password" /></a>
 										{else}
 											Reset Pwd
 										{/if}

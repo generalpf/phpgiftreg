@@ -54,13 +54,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 									<td>{$row.rendered}</td>
 									<td>{$row.rankorder}</td>
 									<td>
-										<a href="ranks.php?action=edit&ranking={$row.ranking}#rankform"><img src="images/write_obj.gif" border="0" alt="Edit Rank" title="Edit Rank" /></a>
-										/
-										<a href="ranks.php?action=delete&ranking={$row.ranking}"><img src="images/remove.gif" border="0" alt="Delete Rank" title="Delete Rank" /></a>
-										/
-										<a href="ranks.php?action=promote&ranking={$row.ranking}&rankorder={$row.rankorder}">Promote</a>
-										/
-										<a href="ranks.php?action=demote&ranking={$row.ranking}&rankorder={$row.rankorder}">Demote</a>
+										<a href="ranks.php?action=edit&ranking={$row.ranking}#rankform"><img src="images/pencil.png" border="0" alt="Edit Rank" title="Edit Rank" /></a>
+										<a href="ranks.php?action=delete&ranking={$row.ranking}"><img src="images/bin.png" border="0" alt="Delete Rank" title="Delete Rank" /></a>
+										<a href="ranks.php?action=promote&ranking={$row.ranking}&rankorder={$row.rankorder}"><img src="images/arrow-up.png" border="0" alt="Promote" title="Promote" /></a>
+										<a href="ranks.php?action=demote&ranking={$row.ranking}&rankorder={$row.rankorder}"><img src="images/arrow-down.png" border="0" alt="Demote" title="Demote" /></a>
 									</td>
 								</tr>
 							{/foreach}
