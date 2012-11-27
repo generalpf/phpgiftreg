@@ -21,13 +21,42 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="bootstrap/js/bootstrap.min.js"></script>
+	<script src="js/jquery.validate.min.js"></script>
+	<script src="js/giftreg.js"></script>
+
+	<script language="JavaScript" type="text/javascript">
+		$(document).ready(function() {
+			$("#loginform").validate({
+				highlight: validate_highlight,
+				success: validate_success,
+				rules: {
+					username: {
+						required: true
+					},
+					password: {
+						required: true
+					}
+				},
+				messages: {
+					username: {
+						required: "Username is required."
+					},
+					password: {
+						required: "Password is required."
+					}
+				}
+			});
+		});
+	</script>
 </head>
 <body>
 	<div class="container" style="padding-top: 30px;">
 		<div class="row">
 			<div class="span8 offset2">
 			<h1>Gift Registry</h1>
-		<form name="login" method="post" action="login.php" class="well form-horizontal">
+		<form name="loginform" id="loginform" method="post" action="login.php" class="well form-horizontal">
 			<fieldset>
 				{if isset($username)}
 					<div class="alert alert-error">Bad login.</div>
