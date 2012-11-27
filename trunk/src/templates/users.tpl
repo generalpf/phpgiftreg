@@ -23,6 +23,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 	<script src="bootstrap/js/bootstrap.min.js"></script>
+	<script src="js/jquery.validate.min.js"></script>
+	<script src="js/giftreg.js"></script>
 	
 	<script language="JavaScript" type="text/javascript">
 		$(document).ready(function() {
@@ -30,6 +32,41 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 				var u = $(this).attr('data-content');
 				if (!window.confirm('Are you sure you want to delete ' + u + '?')) {
 					event.preventDefault();
+				}
+			});
+
+			$("#theform").validate({
+				highlight: validate_highlight,
+				success: validate_success,
+				rules: {
+					username: {
+						required: true,
+						maxlength: 20
+					},
+					fullname: {
+						required: true,
+						maxlength: 50
+					},
+					email: {
+						required: true,
+						maxlength: 255,
+						email: true
+					}
+				},
+				messages: {
+					username: {
+						required: "Username is required.",
+						maxlength: "Username must be 20 characters or less."
+					},
+					fullname: {
+						required: "Full name is required.",
+						maxlength: "Full name must be 50 characters or less."
+					},
+					email: {
+						required: "E-mail address is required.",
+						maxlength: "E-mail address must be 255 characters or less.",
+						email: "E-mail address must be a valid address."
+					}
 				}
 			});
 		});
@@ -93,7 +130,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		<a name="userform">
 		<div class="row">
 			<div class="span12">
-				<form name="users" method="get" action="users.php" class="well form-horizontal">	
+				<form name="theform" id="theform" method="get" action="users.php" class="well form-horizontal">	
 					{if $action == "edit" || (isset($haserror) && $action == "update")}
 						<input type="hidden" name="userid" value="{$userid}">
 						<input type="hidden" name="action" value="update">
