@@ -21,6 +21,81 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="bootstrap/js/bootstrap.min.js"></script>
+	<script src="js/jquery.validate.min.js"></script>
+	<script src="js/giftreg.js"></script>
+
+	<script language="JavaScript" type="text/javascript">
+		$(document).ready(function() {
+			$("#imagefile").change(function() {
+				$("#ifnew, #ifreplace").attr('CHECKED', 'CHECKED');	
+			});
+
+			$("#itemform").validate({
+				highlight: validate_highlight,
+				success: validate_success,
+				rules: {
+					description: {
+						required: true,
+						maxlength: 255
+					},
+					category: {
+						required: true
+					},
+					price: {
+						required: true,
+						min: 0,
+						"number": true
+					},
+					source: {
+						required: true,
+						maxlength: 255
+					},
+					ranking: {
+						required: true
+					},
+					quantity: {
+						required: true,
+						digits: true,
+						min: 1
+					},
+					url: {
+						url: true
+					}
+				},
+				messages: {
+					description: {
+						required: "The item's description is required.",
+						maxlength: "The item's description must be 255 characters or less."
+					},
+					category: {
+						required: "A category must be selected."
+					},
+					price: {
+						required: "The item's price is required.",
+						min: "Price can't be a negative number.",
+						"number": "Price must be a valid number."
+					},
+					source: {
+						required: "A source to buy the item is required.",
+						maxlength: "The source must be 255 characters or less."
+					},
+					ranking: {
+						required: "A ranking is required."
+					},
+					quantity: {
+						required: "A quantity is required.",
+						digits: "Quantity must be a valid number.",
+						min: "Quantity can't be negative"
+					},
+					url: {
+						url: "If specified, URL must be valid."
+					}
+				}
+			});
+		});
+	</script>
 </head>
 <body>
 	{include file='navbar.tpl' isadmin=$isadmin}
@@ -46,7 +121,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	{/if}
 	<div class="row">
 		<div class="span8 offset2">
-			<form name="item" method="POST" action="item.php" enctype="multipart/form-data" class="well form-horizontal">
+			<form name="itemform" id="itemform" method="POST" action="item.php" enctype="multipart/form-data" class="well form-horizontal">
 				<fieldset>
 					<legend>{if $action == 'edit' || (isset($haserror) && $action == 'update')}Edit Item{else}Add Item{/if}</legend>
 					{if $action == 'edit' || (isset($haserror) && $action == 'update')}
@@ -81,7 +156,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<div class="control-group {if isset($price_error)}warning{/if}">
 						<label class="control-label" for="price">Price ({$opt.currency_symbol})</label>
 						<div class="controls">
-							<input id="price" name="price" type="text" value="{$price|escape:'htmlall'}" class="input-xlarge" placeholder="5.00">
+							<input id="price" name="price" type="text" value="{$price|escape:'htmlall'}" class="input-xlarge" placeholder="0.00">
 							{if isset($price_error)}
 								<span class="help-inline">{$price_error}</span>
 							{/if}
@@ -138,17 +213,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 								{if $image_filename == ''}
 									<input type="radio" name="image" value="none" CHECKED>
 									No image.<br />
-									<input type="radio" name="image" value="upload">
+									<input type="radio" name="image" value="upload" id="ifnew">
 									Upload image:
-									<input type="file" name="imagefile">
+									<input type="file" id="imagefile" name="imagefile">
 								{else}
 									<input type="radio" name="image" value="remove">
 									Remove existing image.<br />
 									<input type="radio" name="image" value="keep" CHECKED>
 									Keep existing image.<br />
-									<input type="radio" name="image" value="replace">
+									<input type="radio" name="image" value="replace" id="ifreplace">
 									Replace existing image:
-									<input type="file" name="imagefile">
+									<input type="file" id="imagefile" name="imagefile">
 								{/if}
 							</div>
 						</div>
@@ -168,7 +243,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		</div>
 	</div>
 	</div>
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-	<script src="bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>

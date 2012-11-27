@@ -21,6 +21,43 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="bootstrap/js/bootstrap.min.js"></script>
+	<link href="datepicker/css/datepicker.css" rel="stylesheet">
+	<script src="datepicker/js/bootstrap-datepicker.js"></script>
+	<script src="js/jquery.validate.min.js"></script>
+	<script src="js/giftreg.js"></script>
+
+	<script language="JavaScript" type="text/javascript">
+		$(document).ready(function() {
+			$('#eventdate').datepicker();
+
+			$('#eventform').validate({
+				highlight: validate_highlight,
+				success: validate_success,
+				rules: {
+					description: {
+						required: true,
+						maxlength: 255
+					},
+					eventdate: {
+						required: true,
+						"date": true
+					}
+				},
+				messages: {
+					description: {
+						required: "A description of the event is required.",
+						maxlength: "The description must be 255 characters or less."
+					},
+					eventdate: {
+						required: "The event date is required.",
+						"date": "The event date must be a valid date in mm/dd/yyyy format."
+					}
+				}
+			});
+		});
+	</script>
 </head>
 <body>
 	{include file='navbar.tpl' isadmin=$isadmin}
@@ -88,7 +125,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	</div>
 	<div class="row">
 		<div class="span8 offset2">
-			<form name="event" method="get" action="event.php" class="well form-horizontal">
+			<form name="eventform" id="eventform" method="get" action="event.php" class="well form-horizontal">
 				<fieldset>
 					<legend>Event Details</legend>
 					{if $action == "edit" || (isset($haserror) && $action == "update")}
@@ -109,7 +146,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<div class="control-group {if isset($eventdate_error)}warning{/if}">
 						<label class="control-label" for="eventdate">Event date</label>
 						<div class="controls">
-							<input id="eventdate" name="eventdate" type="text" value="{$eventdate|escape:'htmlall'}" class="input-xlarge" placeholder="mm/dd/yyyy">
+							<input id="eventdate" name="eventdate" type="text" value="{$eventdate|escape:'htmlall'}" class="input-xlarge" placeholder="mm/dd/yyyy" data-date-format="mm/dd/yyyy">
 							<p class="help-block">mm/dd/yyyy</p>
 							{if isset($eventdate_error)}
 								<span class="help-inline">{$eventdate_error}</span>
@@ -141,7 +178,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		</div>
 	</div>
 </div>
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-	<script src="bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>
