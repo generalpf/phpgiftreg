@@ -21,31 +21,48 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="bootstrap/js/bootstrap.min.js"></script>
+	<script src="js/jquery.validate.min.js"></script>
+	<script src="js/giftreg.js"></script>
+
 	<script language="JavaScript" type="text/javascript">
-		function validateSignup() {
-			field = document.signup.username;
-			if (field == null || field == undefined || !field.value.match("\\S")) {
-				alert("You must supply a username.");
-				field.focus();
-				return false;
-			}
-		
-			field = document.signup.fullname;
-			if (field == null || field == undefined || !field.value.match("\\S")) {
-				alert("You must supply your full name.");
-				field.focus();
-				return false;
-			}
-		
-			field = document.signup.email;
-			if (!field.value.match("\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*")) {
-				alert("The e-mail address '" + field.value + "' is not a valid address.");
-				field.focus();
-				return false;
-			}
-		
-			return true;
-		}
+		$(document).ready(function() {
+			$("#signupform").validate({
+				highlight: validate_highlight,
+				success: validate_success,
+				rules: {
+					username: {
+						required: true,
+						maxlength: 20
+					},
+					fullname: {
+						required: true,
+						maxlength: 50
+					},
+					email: {
+						required: true,
+						email: true,
+						maxlength: 255
+					},
+					familyid: {
+						required: true
+					}
+				},
+				messages: {
+					username: {
+						required: "A username is required.",
+						maxlength: "Username must be 20 characters or less."
+					},
+					fullname: {
+						required: "Your full name is required.",
+						maxlength: "Your full name must be 50 characteres or less."
+					},
+					email: "A valid e-mail address is required.",
+					familyid: "Please select a family."
+				}
+			});
+		});
 	</script>
 </head>
 <body>
@@ -74,7 +91,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		{else}
 			<div class="row">
 				<div class="span8 offset2">
-					<div class="well">
+					<div class="alert alert-info">
 						<p>Complete the form below and click Submit.</p>
 						{if $opt.newuser_requires_approval}
 							<p>The list administrators will be notified of your request by e-mail and will approve or decline your request.
@@ -89,7 +106,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 			<div class="row">
 				<div class="span8 offset2">
-					<form name="signup" method="post" action="signup.php" class="well form-horizontal">	
+					<form name="signupform" id="signupform" method="post" action="signup.php" class="well form-horizontal">	
 						<input type="hidden" name="action" value="signup">
 						<fieldset>
 							<legend>Sign Up for the Gift Registry</legend>
@@ -115,6 +132,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 								<label class="control-label" for="familyid">Family</label>
 								<div class="controls">
 									<select name="familyid">
+										<option value="">(select one)</option>
 										{foreach from=$families item=row}
 											<option value="{$row.familyid}">{$row.familyname|escape:'htmlall'}</option>
 										{/foreach}
@@ -122,7 +140,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 								</div>
 							</div>
 							<div class="form-actions">
-								<button type="submit" class="btn btn-primary" onClick="return validateSignup();">Submit</button>
+								<button type="submit" class="btn btn-primary">Submit</button>
 								<button type="button" class="btn" onClick="document.location.href='login.php';">Cancel</button>
 							</div>
 						</fieldset>
@@ -131,8 +149,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 			</div>
 		{/if}
 	</div>
-
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-	<script src="bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>

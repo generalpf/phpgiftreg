@@ -114,7 +114,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						<td nowrap>{$row.rendered}</td>
 						<td>{$row.category|default:"&nbsp;"}</td>
 						<td align="right">{$row.price}</td>
-						<td align="right">
+						<td align="right" nowrap>
 							<a href="receive.php?itemid={$row.itemid}"><img alt="Mark Item Received" src="images/return.png" border="0" title="Mark Item Received" /></a>&nbsp;
 							<a href="item.php?action=edit&itemid={$row.itemid}"><img alt="Edit Item" src="images/pencil.png" border="0" title="Edit Item" /></a>&nbsp;
 							<a rel="confirmitemdelete" data-content="{$row.description|escape:'htmlall'}" href="item.php?action=delete&itemid={$row.itemid}"><img alt="Delete Item" src="images/bin.png" border="0" alt="Delete" title="Delete Item" /></a>
@@ -166,7 +166,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						</td>
 						<td align="right">{$row.list_stamp}</td>
 						<td align="right">{$row.itemcount}</td>
-						<td align="right">
+						<td align="right" nowrap>
 							{if $row.itemcount > 0}
 								<a href="shop.php?shopfor={$row.userid}"><img alt="Shop for {$row.fullname|escape:'htmlall'}" src="images/store.png" border="0" alt="Shop" title="Shop"></a>&nbsp;
 							{/if}
@@ -192,7 +192,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						{foreach from=$prospects item=row}
 							<tr>
 								<td>{$row.fullname|escape:'htmlall'}</td>
-								<td align="right">
+								<td align="right" nowrap>
 									{if $row.pending}
 										<a href="index.php?action=cancel&shopfor={$row.userid}"><img src="images/delete.png" border="0" alt="Cancel" title="Cancel" /></a>
 									{else}
