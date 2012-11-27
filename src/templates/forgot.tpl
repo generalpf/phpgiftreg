@@ -21,18 +21,28 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="bootstrap/js/bootstrap.min.js"></script>
+	<script src="js/jquery.validate.min.js"></script>
+	<script src="js/giftreg.js"></script>
 
 	<script language="JavaScript" type="text/javascript">
-		function validate() {
-			field = document.forgot.username;
-			if (field == null || field == undefined || !field.value.match("\\S")) {
-				alert("You must supply a username.");
-				field.focus();
-				return false;
-			}
-		
-			return true;
-		}
+		$(document).ready(function() {
+			$("#forgotform").validate({
+				highlight: validate_highlight,
+				success: validate_success,
+				rules: {
+					username: {
+						required: true
+					},
+				},
+				messages: {
+					username: {
+						required: "Username is required."
+					}
+				}
+			});
+		});
 	</script>
 </head>
 <body>
@@ -50,7 +60,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	{else}
 		<div class="row">
 			<div class="span12">
-				<form name="forgot" method="post" action="forgot.php" class="well form-horizontal">	
+				<form name="forgotform" id="forgotform" method="post" action="forgot.php" class="well form-horizontal">	
 					<input type="hidden" name="action" value="forgot">
 					<fieldset>
 						<legend>Reset Your Password</legend>
@@ -68,7 +78,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 							</p>
 						</div>
 						<div class="form-actions">
-							<button type="submit" class="btn btn-primary" onClick="return validate();">Submit</button>
+							<button type="submit" class="btn btn-primary">Submit</button>
 							<button type="button" class="btn" onClick="document.location.href='login.php';">Cancel</button>
 						</div>
 					</fieldset>
@@ -77,8 +87,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		</div>
 	{/if}
 	</div>
-
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-	<script src="bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>

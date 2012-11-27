@@ -22,29 +22,66 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="bootstrap/js/bootstrap.min.js"></script>
+	<script src="js/jquery.validate.min.js"></script>
+	<script src="js/giftreg.js"></script>
+
 	<script language="JavaScript" type="text/javascript">
-		function confirmPassword() {
-			var theForm = document.forms["changepwd"];
-			if (theForm.newpwd.value != theForm.confpwd.value) {
-				alert("Passwords don't match.");
-				return false;
-			}
-			return true;
-		}
-		function validateProfile() {
-			var theForm = document.forms["profile"];
-			if (!theForm.fullname.value.match("\\S")) {
-				alert("A full name is required.");
-				theForm.fullname.focus();
-				return false;
-			}
-			if (!theForm.email.value.match("\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*")) {
-				alert("The e-mail address '" + theForm.email.value + "' is not a valid address.");
-				theForm.email.focus();
-				return false;
-			}
-			return true;
-		}
+		$(document).ready(function() {
+			$("#changepwdform").validate({
+				highlight: validate_highlight,
+				success: validate_success,
+				rules: {
+					newpwd: {
+						required: true,
+						maxlength: 50
+					},
+					confpwd: {
+						required: true,
+						maxlength: 50,
+						equalTo: "#newpwd"
+					}
+				},
+				messages: {
+					newpwd: {
+						required: "Password is required.",
+						maxlength: "Password must be 50 characters or less."
+					},
+					confpwd: {
+						required: "Confirmation is required.",
+						maxlength: "Confirmation must be 50 characters or less.",
+						equalTo: "Passwords don't match."
+					}
+				}
+			});
+			$("#profileform").validate({
+				highlight: validate_highlight,
+				success: validate_success,
+				rules: {
+					fullname: {
+						required: true,
+						maxlength: 50
+					},
+					email: {
+						required: true,
+						maxlength: 255,
+						email: true
+					}
+				},
+				messages: {
+					fullname: {
+						required: "Full name is required.",
+						maxlength: "Full name must be 50 characters or less."
+					},
+					email: {
+						required: "E-mail address is required.",
+						maxlength: "E-mail address must be 255 characters or less.",
+						email: "E-mail address must be a valid address."
+					}
+				}
+			});
+		});
 	</script>
 	</head>
 <body>
@@ -53,7 +90,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<div class="container" style="padding-top: 60px;">
 		<div class="row">
 			<div class="span8 offset2">
-<form name="changepwd" action="profile.php" method="POST" onSubmit="return confirmPassword();" class="well form-horizontal">
+<form name="changepwdform" id="changepwdform" action="profile.php" method="POST" class="well form-horizontal">
 	<input type="hidden" name="action" value="changepwd">
 	<fieldset>
 		<legend>Change Password</legend>
@@ -79,20 +116,20 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		</div>
 		<div class="row">
 			<div class="span8 offset2">
-<form name="profile" action="profile.php" method="POST" onSubmit="return validateProfile();" class="well form-horizontal">
+<form name="profileform" id="profileform" action="profile.php" method="POST" class="well form-horizontal">
 	<input type="hidden" name="action" value="save">
 	<fieldset>
 		<legend>Update Profile</legend>
 		<div class="control-group">
 			<label class="control-label" for="fullname">Full name</label>
 			<div class="controls">
-				<input type="text" id="fullname" name="fullname" class="input-xlarge" value="{$fullname}">
+				<input type="text" id="fullname" name="fullname" class="input-xlarge" value="{$fullname|escape:'htmlall'}">
 			</div>
 		</div>
 		<div class="control-group">
 			<label class="control-label" for="email">E-mail address</label>
 			<div class="controls">
-				<input type="text" id="email" name="email" class="input-xlarge" value="{$email}">
+				<input type="text" id="email" name="email" class="input-xlarge" value="{$email|escape:'htmlall'}">
 			</div>
 		</div>
 		<div class="control-group">
@@ -105,7 +142,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		<div class="control-group">
 			<label class="control-label" for="comment">Comments / shipping address / etc. (optional)</label>
 			<div class="controls">
-				<textarea id="comment" name="comment" rows="5" cols="40">{$comment}</textarea>
+				<textarea id="comment" name="comment" rows="5" cols="40">{$comment|escape:'htmlall'}</textarea>
 			</div>
 		</div>
 		<div class="form-actions">
@@ -117,7 +154,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		</div>
 	</div>
 </div>
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-	<script src="bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>

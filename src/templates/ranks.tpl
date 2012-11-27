@@ -21,6 +21,39 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="bootstrap/js/bootstrap.min.js"></script>
+	<script src="js/jquery.validate.min.js"></script>
+	<script src="js/giftreg.js"></script>
+
+	<script language="JavaScript" type="text/javascript">
+		$(document).ready(function() {
+			$("#theform").validate({
+				highlight: validate_highlight,
+				success: validate_success,
+				rules: {
+					title: {
+						required: true,
+						maxlength: 50
+					},
+					rendered: {
+						required: true,
+						maxlength: 255
+					}
+				},
+				messages: {
+					title: {
+						required: "A title is required.", 
+						maxlength: "Title must be 50 characters or less."
+					},
+					rendered: {
+						required: "HTML is required.",
+						maxlength: "HTML must be 255 characters or less."
+					}
+				}
+			});
+		});
+	</script>
 </head>
 <body>
 	{include file='navbar.tpl' isadmin=$isadmin}
@@ -71,7 +104,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		<a name="rankform">
 		<div class="row">
 			<div class="span12">
-				<form name="rank" method="get" action="ranks.php" class="well form-horizontal">	
+				<form name="theform" id="theform" method="get" action="ranks.php" class="well form-horizontal">	
 					{if $action == "edit" || (isset($haserror) && $action == "update")}
 						<input type="hidden" name="ranking" value="{$ranking}">
 						<input type="hidden" name="action" value="update">
@@ -107,8 +140,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 			</div>
 		</div>
 	</div>
-
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-	<script src="bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>

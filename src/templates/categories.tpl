@@ -21,6 +21,31 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="bootstrap/js/bootstrap.min.js"></script>
+	<script src="js/jquery.validate.min.js"></script>
+	<script src="js/giftreg.js"></script>
+
+	<script language="JavaScript" type="text/javascript">
+		$(document).ready(function() {
+			$("#categoryform").validate({
+				highlight: validate_highlight,
+				success: validate_success,
+				rules: {
+					category: {
+						required: true,
+						maxlength: 50
+					}
+				},
+				messages: {
+					category: {
+						required: "Category name is required.",
+						maxlength: "Category name must be 50 characters or less."
+					}
+				}
+			});
+		});
+	</script>
 </head>
 <body>
 	{include file='navbar.tpl' isadmin=$isadmin}
@@ -79,7 +104,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		<a name="catform">
 		<div class="row">
 			<div class="span12">
-				<form name="category" method="get" action="categories.php" class="well form-horizontal">
+				<form name="categoryform" id="categoryform" method="get" action="categories.php" class="well form-horizontal">
 					{if $action == "edit" || (isset($haserror) && $action == "update")}
 						<input type="hidden" name="categoryid" value="{$categoryid}">
 						<input type="hidden" name="action" value="update">
@@ -106,8 +131,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 			</div>
 		</div>
 	</div>
-
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-	<script src="bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>
