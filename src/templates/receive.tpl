@@ -21,6 +21,41 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="bootstrap/js/bootstrap.min.js"></script>
+	<script src="js/jquery.validate.min.js"></script>
+	<script src="js/giftreg.js"></script>
+	
+	<script language="JavaScript" type="text/javascript">
+		$(document).ready(function() {
+			$("#receiverform").validate({
+				highlight: validate_highlight,
+				success: validate_success,
+				rules: {
+					buyer: {
+						required: true
+					},
+					quantity: {
+						required: true,
+						digits: true,
+						min: 1,
+						max: {$quantity}
+					}
+				},
+				messages: {
+					buyer: {
+						required: "Please select a buyer."
+					},
+					quantity: {
+						required: "Please enter the quantity you received.",
+						digits: "Quantity must be a valid number.",
+						min: "Quantity must be 1 or greater.",
+						max: "Quantity must be {$quantity} or less."
+					}
+				}
+			});
+		});
+	</script>
 </head>
 <body>
 	{include file='navbar.tpl' isadmin=$isadmin}
@@ -28,7 +63,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	<div class="container" style="padding-top: 60px;">
 		<div class="row">
 			<div class="span8 offset2">
-<form name="receiver" method="get" action="receive.php" class="well form-horizontal">
+<form name="receiverform" id="receiverform" method="get" action="receive.php" class="well form-horizontal">
 	<input type="hidden" name="action" value="receive">
 	<input type="hidden" name="itemid" value="{$itemid}">
 	<fieldset>
@@ -37,6 +72,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 			<label class="control-label" for="buyer">Buyer</label>
 			<div class="controls">
 				<select id="buyer" name="buyer" class="input-xlarge">
+					<option value="">(select buyer)</option>
 					{foreach from=$buyers item=row}
 						<option value="{$row.userid}">{$row.fullname|escape:'htmlall'}</option>
 					{/foreach}
@@ -59,8 +95,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 			</div>
 		</div>
 	</div>
-
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-	<script src="bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>
