@@ -1,0 +1,12 @@
+body {
+	background-color: #1F7F55;
+}
+
+.block {
+	border: solid 1px black;
+	background-color: white;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
