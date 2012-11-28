@@ -1,0 +1,111 @@
+<html>
+<head>
+	<title>PHP Gift Registry</title>
+	<link rel="stylesheet" type="text/css" href="phpgiftreg.css">
+</head>
+<body>
+<div class="block">
+	<h2><center>PHP Gift Registry (phpgiftreg)</center></h3>
+</div>
+<br />
+<div class="block">
+	<h3>Description</h3>
+	<p>
+		The PHP Gift Registry is a web-enabled gift registry intended for use among a circle of family members or friends.  
+		It is intended to fill the following purposes:
+		<ul>
+			<li>Permit the long-term storage of a list of items one desires, along with its price, where it can be bought, and (optionally) a URL where it can be viewed.</li>
+			<li>Enabled items to be &quot;locked&quot; by one shopper so that the same item is not bought by someone else.</li>
+		</ul>
+		Its features include:
+		<ul>
+			<li>A single unifying view of items on your own list and people whose lists you can view.</li>
+			<li>A now-optional request/permit system by which you can control who can see your list.</li>
+			<li>A &quot;checkin/checkout&quot; system which allows you to reserve items on someone's list.</li>
+			<li>An in-system messaging system by which users can be informed of item deletions or custom announcements.</li>
+			<li>New users can request accounts.  Optionally, administrators will be 
+  informed about the request, and they can then approve or reject the 
+  request.  Either way, the user will be informed by e-mail.</li>
+			<li>A site-customizable ranking system for items.</li>
+			<li>An events system for users to add significant (read: gift-bearing) events
+  which will show up on others' displays when the event nears.</li>
+		</ul>
+	</p>
+</div>
+<br />
+<div class="block">
+	<h3>How to Get It and Use It</h3>
+	<p>
+		The software can be downloaded from <a href="http://sourceforge.net/projects/phpgiftreg/">SourceForge.net</a> in the <a href="http://sourceforge.net/project/showfiles.php?group_id=110846">Files</a> area.  
+		Installation instructions can be found within the tarball, 
+		or can be read <a href="INSTALL">here</a>.
+		You will require the following software:
+		<ul>
+			<li><a href="http://www.apache.org">Apache</a> 1.3.x or Apache 2.x or later.</li>
+			<li><a href="http://www.php.net">PHP</a> 4.x or later.  (<font face="Courier, Courier New">register_globals = Off</font> is okay, too.)</li>
+			<li><a href="http://www.mysql.org">MySQL</a> 3.x or later.</li>
+			<li>An operating system capable of running all of the above.</li>
+		</ul>
+	</p>
+	<p>
+		I have personally tested this application on Windows 2000, Windows XP, Slackware Linux, Fedora Core 1 and FreeBSD with varying versions of Apache, PHP and MySQL.  I have encountered no issues.
+	</p>
+</div>
+<br />
+<div class="block">
+	<h3>phpgiftreg in Action</h3>
+	<table border="0">
+		<tr valign="bottom">
+			<td>
+				<p>
+					<a href="images/screenshots/main.png"><img src="images/screenshots/tn-main.png"></a>
+				</p>
+				<p>
+					Main view
+				</p>
+			</td>
+			<td>
+				<p>
+					<a href="images/screenshots/shop.png"><img src="images/screenshots/tn-shop.png"></a>
+				</p>
+				<p>
+					Shopping view
+				</p>
+			</td>
+			<td>
+				<p>
+					<a href="images/screenshots/item.png"><img src="images/screenshots/tn-item.png"></a>
+				</p>
+				<p>
+					Edit item
+				</p>
+			</td>
+		</tr>
+	</table>
+</div>
+<br />
+<div class="block">
+	<h3>Documentation</h3>
+	<p>Here are some basic instructions to get you going.</p>
+	<p>A phpgiftreg installation consists of a set of <em>users</em>.  Each user is a family member who maintains their own gift list.  One or more users are designated as <em>administrators</em>; these users handle approvals of new users and can maintain <em>categories</em> and <em>rankings</em> (described below).  When you run the setup script for the phpgiftreg, you will create the first administrator.</p>
+	<p>Users belong to zero or more <em>families</em>.  (A user <strong>should</strong> always belong to one or more families.)  A family is simply a group of users who would be interested in exchanging gifts for each other.  For example, if Adam Smith marries Jane Doe, you'd likely have two families defined: the Smiths and the Does.  Adam and Jane would probably belong to both families, while Adam's parents and siblings would only belong to the Smith family, and Jane's parents and siblings would only belong to the Doe family.  This prevents Adam's second-cousin-twice-removed from seeing Jane's orthodontist, for example.  Users can easily be added and removed from families.</p>
+	<p>Each user maintains a list of users that he/she <em>shops for</em>.  All this means is that he can see that user's gift list.  Your phpgiftreg installation can be set up to auto-allow <em>shopping requests</em>; otherwise, a user who requests to shop for another user must wait for the recipient to approve the request.</p>
+	<p>A gift list consists of a set of zero or more <em>items</em>.  Each item has a description, an estimated price, a <em>category</em>, a store/retailer where it can be purchased, a <em>ranking</em>, a quantity, a URL where potential buyers can find more information, a comment, and an image.  Only the description, price, category, store/retailer, ranking and quantity are mandatory.</p>
+	<p>Rankings and categories are maintained by the administrator.  For the most part, the rankings should be adequate for most users, but the categories can be easily extended.</p>
+	<p>When a user shops for another user, he/she can <em>reserve</em> or <em>purchase</em> an item.  A reservation simply marks the the <strong>intention</strong> of the buyer to purchase the item.  A purchase marks the user as having purchased the item.</p>
+	<p>When quantities are involved, multiple users can allocate different amounts of reservations and purchases for the same item.  For example, Jane Doe can ask for 10 steak knives.  Adam's mom can reserve 4 and Jane's friend can purchase 2, leaving 4 available.  Once Adam's mom buys the 4 knives, she can <em>convert</em> them to a purchase.  If she changes her mind, she can <em>release</em> the reservation, leaving 8 available.  Purchases can always be <em>returned</em>, which converts them back to a reservation.</p>
+	<p>If <em>anonymous purchasing</em> is turned on in the config.php, anybody shopping for another user can see how many of an item are reserved/purchased, but not who did so.</p>
+	<p>A user who has made multiple reservations/purchases for another user can use the <em>shopping list</em> feature to quickly print off a list of items they have reserved or purchased.  This is handy to take to the store, rather than printing off each user's full list.</p>
+	<p>Once a user receives an item, he/she can mark the item as received, which is different from a deletion in that only the received quantity is debited from their item.  If a reserved/purchased item is deleted without being received, a <em>message</em> is privately sent to the reserver/purchaser to inform them that the item is no longer required.</p>
+	<p>The system also allows the definition of <em>events</em>, which are gift-bearing opportunities, like Christmas and birthdays.  Events can be <em>personal</em> or <em>system events</em>.  Personal events are events specific to that user, like a birthday or anniversary.  System events are events that apply to the entire family, like Christmas or Hanukkah.  All events can be marked as <em>recurring</em>, meaning they repeat year after year.  Only the administrator can modify system events.</p>
+	<p>The system also supports <em>messages</em>, which is a basic send/receive system for notifications.  Most users should have the option set to automatically e-mail any messages received, provided they have specified a valid e-mail address.</p>
+</div>
+<br />
+<div class="block">
+	<i>Copyright 2008 Ryan Walberg &lt;<a href="mailto:generalpf@yahoo.com">generalpf@yahoo.com</a>&gt;</i>
+</div>
+<p align="center">
+	<A href="http://sourceforge.net"> <IMG src="http://sourceforge.net/sflogo.php?group_id=110846&amp;type=5" width="210" height="62" border="0" alt="SourceForge.net Logo" /></A>
+</p>
+</body>
+</html>

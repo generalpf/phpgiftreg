@@ -1,0 +1,146 @@
+Installation Instructions
+
+NOTE: these instructions are specific to operating with MySQL.
+If you're going to use a different database, substitute your database
+server's setup procedure where necessary.
+
+1. Unpack phpgiftreg website
+2. Create MySQL database
+3. Create MySQL tables
+4. Create MySQL user (optional)
+5. Configure db.php
+6. Configure config.php (optional)
+7. Create Apache alias
+8. Set up the initial family and user using setup.php
+
+=============================================================================
+
+1. Unpack phpgiftreg website
+
+Change to the directory where you're going to run the website from and 
+extract the pages.  The tarball contains the phpgiftreg/ directory itself.
+
+user@host $ tar -xvzf phpgiftreg-x.x.x.tar.gz
+<output>
+
+Then give everything the proper permissions (thanks to Paul Hubbard for
+pointing this out).  An example would be owner-writable, world-readable:
+
+user@host $ cd phpgiftreg-x.x.x
+user@host $ chmod 644 *.php *.css images/*
+
+As of 1.6.0, there is a subdirectory called item_images/ that must be 
+writeable by the webserver.  The phpgiftreg scripts will be writing files
+to this directory.  Don't worry, the setup.php script described below
+will test if you got this right.
+
+As of 2.0.0, there are subdirectories called cache/ and templates_c/
+that must also be writeable by the webserver.  setup.php will also test
+if those have the correct permissions.
+
+=============================================================================
+
+2. Create MySQL database
+
+Login to the MySQL server with a user capable of creating databases.  If 
+you're running a trusted system, simply executing `mysql' should be adequate.
+Otherwise, do something like this:
+
+user@host $ mysql -u username -h host -p
+Enter password: <enter password here>
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 626 to server version: 3.23.58-log
+
+Type 'help;' or '\h' for help. Type '\c' to clear the buffer.
+
+mysql>
+
+Once inside, create the phpgiftreg database:
+
+mysql> create database phpgiftreg;
+Database phpgiftreg created.
+
+=============================================================================
+
+3. Create MySQL tables
+
+You can examine the area where the `ranks' table is populated and 
+modify that.  There's a column for the rank's description and how it 
+should look when rendered in HTML.  By default, it shows between 1 and 5 
+stars, which should be suitable for most installations.
+
+Change to the phpgiftreg database like this:
+
+mysql> use phpgiftreg;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+
+Run the create-phpgiftregdb.sql script like this:
+
+mysql> source /path/to/create-phpgiftregdb.sql
+<lots of activity>
+
+mysql>
+
+=============================================================================
+
+4. Create MySQL user (optional)
+
+You should have a separate user for the database.  If you choose to, create 
+the new user like so:
+
+mysql> GRANT ALL ON phpgiftreg.* TO username@host IDENTIFIED BY 'password';
+mysql> FLUSH PRIVILEGES;
+
+This creates a user called `username' that can connect from `host'.
+
+=============================================================================
+
+5. Configure includes/config.php
+
+You MUST edit includes/config.php to define your database connection.
+It is required to set the `pdo_connection_string', `pdo_username'
+and `pdo_password' settings.  See 
+http://www.php.net/manual/en/pdo.construct.php for more information, 
+especially if you are going to use a database other than MySQL.
+
+NOTE: phpgiftreg is only tested on MySQL, though other databases should
+(in theory) work with little modification.
+
+There are some options to change in config.php if you wish.  Their functions
+are described in that file.
+
+NOTE: older versions of phpgiftreg defined database parameters in a
+file called db.php.  That file is no longer used, and connection information
+belongs in includes/config.php.
+
+=============================================================================
+
+6. Create Apache alias
+
+Edit your httpd.conf and add an Alias like so:
+
+Alias /phpgiftreg/ "/path/to/phpgiftreg/"
+
+The trailing slashes are important.  Restart the web server and you should
+be good to go.
+
+=============================================================================
+
+7. Set up the initial family and user using setup.php
+
+Point your browser to http://yourserver/phpgiftreg/setup.php or wherever you
+installed it.  It will check your confirmation, and then you'll be prompted 
+to enter some details for an initial administrator user and the default 
+family.  If everything goes well, you'll be ready to begin!
+
+=============================================================================
+
+If you have any problems with these instructions, or if they weren't clear
+or just didn't plain work, please let me know at generalpf@gmail.com.
+
+Ryan Walberg
+generalpf@gmail.com
+@GeneralPF
