@@ -126,7 +126,12 @@ function getGlobalOptions() {
 			allow images to be attached to items, leave this variable empty ("").
 			Trailing / is optional.
 		*/
-		"image_subdir" => "item_images"
+		"image_subdir" => "item_images",
+		
+		/* The number of minutes in between subscription notifications so the subscribers
+			don't get flooded with updates.
+		*/
+		"notify_threshold_minutes" => 60
 	);
 }
 ?>
