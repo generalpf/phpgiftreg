@@ -168,7 +168,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						<td align="right">{$row.itemcount}</td>
 						<td align="right" nowrap>
 							{if $row.itemcount > 0}
-								<a href="shop.php?shopfor={$row.userid}"><img alt="Shop for {$row.fullname|escape:'htmlall'}" src="images/store.png" border="0" alt="Shop" title="Shop"></a>&nbsp;
+								<a href="shop.php?shopfor={$row.userid}"><img alt="Shop for {$row.fullname|escape:'htmlall'}" src="images/store.png" border="0" title="Shop for {$row.fullname|escape:'htmlall'}"></a>
+							{/if}
+							{if !$row.is_unsubscribed}
+								<a href="index.php?action=unsubscribe&shoppee={$row.userid}"><img alt="Unsubscribe from {$row.fullname|escape:'htmlall'}'s updates" src="images/delete.png" border="0" title="Unsubscribe from {$row.fullname|escape:'htmlall'}'s updates"></a>
+							{else}
+								<a href="index.php?action=subscribe&shoppee={$row.userid}"><img alt="Subscribe to {$row.fullname|escape:'htmlall'}'s updates" src="images/podcast.png" border="0" title="Subscribe to {$row.fullname|escape:'htmlall'}'s updates"></a>
 							{/if}
 							<a rel="confirmunshop" data-content="{$row.fullname|escape:'htmlall'}" href="index.php?action=cancel&shopfor={$row.userid}"><img src="images/bin.png" border="0" alt="Don't shop for {$row.fullname|escape:'htmlall'} anymore" title="Don't shop for {$row.fullname|escape:'htmlall'} anymore" /></a>
 						</td>
