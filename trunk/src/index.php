@@ -81,6 +81,32 @@ if (!empty($_GET["action"])) {
 		$stmt->bindValue(2, (int) $_GET["shopfor"], PDO::PARAM_INT);
 		$stmt->execute();
 	}
+	else if ($action == "subscribe") {
+		// ensure the current user can shop for that user first.
+		$stmt = $smarty->dbh()->prepare("SELECT pending FROM shoppers WHERE shopper = ? AND mayshopfor = ?");
+		$stmt->bindParam(1, $userid, PDO::PARAM_INT);
+		$stmt->bindValue(2, (int) $_GET["shoppee"], PDO::PARAM_INT);
+		$stmt->execute();
+		if ($row = $stmt->fetch()) {
+			if ($row["pending"]) {
+				die("You aren't allowed to shop for that user yet.");
+			}
+		}
+		else {
+			die("You aren't allowed to shop for that user.");
+		}
+
+		$stmt = $smarty->dbh()->prepare("INSERT INTO {$opt["table_prefix"]}subscriptions(publisher, subscriber) VALUES(?, ?)");
+		$stmt->bindValue(1, (int) $_GET["shoppee"], PDO::PARAM_INT);
+		$stmt->bindParam(2, $userid, PDO::PARAM_INT);
+		$stmt->execute();
+	}
+	else if ($action == "unsubscribe") {
+		$stmt = $smarty->dbh()->prepare("DELETE FROM {$opt["table_prefix"]}subscriptions WHERE publisher = ? AND subscriber = ?");
+		$stmt->bindValue(1, (int) $_GET["shoppee"], PDO::PARAM_INT);
+		$stmt->bindParam(2, $userid, PDO::PARAM_INT);
+		$stmt->execute();
+	}
 }
 
 if (!empty($_GET["mysort"]))
@@ -126,15 +152,17 @@ while ($stmt->fetch()) {
 	++$myitems_count;
 }
 
-$stmt = $smarty->dbh()->prepare("SELECT u.userid, u.fullname, u.comment, u.list_stamp, COUNT(i.itemid) AS itemcount " .
+$stmt = $smarty->dbh()->prepare("SELECT u.userid, u.fullname, u.comment, u.list_stamp, ISNULL(sub.subscriber) AS is_unsubscribed, COUNT(i.itemid) AS itemcount " .
 			"FROM {$opt["table_prefix"]}shoppers s " .
 			"INNER JOIN {$opt["table_prefix"]}users u ON u.userid = s.mayshopfor " .
 			"LEFT OUTER JOIN {$opt["table_prefix"]}items i ON u.userid = i.userid " .
+			"LEFT OUTER JOIN {$opt["table_prefix"]}subscriptions sub ON sub.publisher = u.userid AND sub.subscriber = ? " .
 			"WHERE s.shopper = ? " .
 				"AND pending = 0 " .
 			"GROUP BY u.userid, u.fullname, u.list_stamp " .
 			"ORDER BY u.fullname");
 $stmt->bindParam(1, $userid, PDO::PARAM_INT);
+$stmt->bindParam(2, $userid, PDO::PARAM_INT);
 $stmt->execute();
 $shoppees = array();
 while ($row = $stmt->fetch()) {

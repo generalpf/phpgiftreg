@@ -138,6 +138,8 @@ if (!empty($_REQUEST["action"])) {
 			// TODO: are we leaking allocs records here?
 		
 			stampUser($userid, $smarty->dbh(), $smarty->opt());
+			processSubscriptions($userid, $action, $smarty->dbh(), $smarty->opt());
+
 			header("Location: " . getFullPath("index.php?message=Item+deleted."));
 			exit;
 		}
@@ -192,6 +194,7 @@ if (!empty($_REQUEST["action"])) {
 			$stmt->execute();
 			
 			stampUser($userid, $smarty->dbh(), $smarty->opt());
+			processSubscriptions($userid, $action, $smarty->dbh(), $smarty->opt());
 
 			header("Location: " . getFullPath("index.php"));
 			exit;
@@ -229,6 +232,7 @@ if (!empty($_REQUEST["action"])) {
 			$stmt->execute();
 
 			stampUser($userid, $smarty->dbh(), $smarty->opt());
+			processSubscriptions($userid, $action, $smarty->dbh(), $smarty->opt());
 
 			header("Location: " . getFullPath("index.php"));
 			exit;		
