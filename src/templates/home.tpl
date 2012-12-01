@@ -108,7 +108,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 								<a href="{$row.url|escape:'htmlall'}" target="_blank"><img src="images/link.png" border="0" alt="URL" title="URL"></a>
 							{/if}
 							{if $row.image_filename != '' && $opt.allow_images}
-								<a rel="lightbox" href="{$opt.image_subdir}/{$row.image_filename}"><img src="images/image.png" border="0" alt="Image" /></a>
+								<a rel="lightbox" href="{$opt.image_subdir}/{$row.image_filename}" title="{$row.description|escape:'htmlall'}"><img src="images/image.png" border="0" alt="Image" /></a>
 							{/if}
 						</td>
 						<td nowrap>{$row.rendered}</td>
