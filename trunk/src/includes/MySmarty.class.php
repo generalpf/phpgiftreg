@@ -7,6 +7,8 @@ require_once(dirname(__FILE__) . "/config.php");
 class MySmarty extends Smarty {
 	public function __construct() {
 		parent::__construct();
+
+		date_default_timezone_set("GMT+0");
 	}
 
 	public function dbh() {
