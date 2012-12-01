@@ -63,8 +63,13 @@ $action = isset($_GET["action"]) ? $_GET["action"] : "";
 if ($action == "insert" || $action == "update") {
 	/* validate the data. */
 	$description = trim($_GET["description"]);
-	$eventdate = $_GET["eventdate"];
-	$ts = strtotime($eventdate);
+	try {
+		$eventdate = new DateTime($_GET["eventdate"]);
+	}
+	catch (Exception $e) {
+	echo $e->getMessage();
+		$eventdate = FALSE;
+	}
 	$recurring = (strtoupper($_GET["recurring"]) == "ON" ? 1 : 0);
 	$systemevent = (strtoupper($_GET["systemevent"]) == "ON" ? 1 : 0);
 		
@@ -73,7 +78,7 @@ if ($action == "insert" || $action == "update") {
 		$haserror = true;
 		$description_error = "A description is required.";
 	}
-	if ($ts < 0 || $ts == FALSE) {
+	if ($eventdate == FALSE) {
 		$haserror = true;
 		$eventdate_error = "Date is out of range for this server.";
 	}
@@ -123,7 +128,7 @@ else if ($action == "insert") {
 			$stmt = $smarty->dbh()->prepare("INSERT INTO {$opt["table_prefix"]}events(userid,description,eventdate,recurring) VALUES(?, ?, ?, ?)");
 			$stmt->bindValue(1, $systemevent ? NULL : $userid, PDO::PARAM_BOOL);
 			$stmt->bindParam(2, $description, PDO::PARAM_STR);
-			$stmt->bindValue(3, strftime("%Y-%m-%d", $ts), PDO::PARAM_STR);
+			$stmt->bindValue(3, $eventdate->format("Y-m-d"), PDO::PARAM_STR);
 			$stmt->bindParam(4, $recurring, PDO::PARAM_BOOL);
 
 			$stmt->execute();
@@ -147,7 +152,7 @@ else if ($action == "update") {
 				"WHERE eventid = ?");
 			$stmt->bindValue(1, $systemevent ? NULL : $userid, PDO::PARAM_BOOL);
 			$stmt->bindParam(2, $description, PDO::PARAM_STR);
-			$stmt->bindValue(3, strftime("%Y-%m-%d", $ts), PDO::PARAM_STR);
+			$stmt->bindValue(3, $eventdate->format("Y-m-d"), PDO::PARAM_STR);
 			$stmt->bindParam(4, $recurring, PDO::PARAM_BOOL);
 			$stmt->bindParam(5, $eventid, PDO::PARAM_INT);
 
