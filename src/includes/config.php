@@ -78,8 +78,9 @@ function getGlobalOptions() {
 		//"currency_symbol" => "&#8364;",	// Euro
 		//"currency_symbol" => "&euro;",	// Euro alternative
 
-		/* The date format used in PHP's strftime function. */
-		"date_format" => "%m/%d/%Y",
+		/* The date format used in DateTime::format()
+			http://php.net/manual/en/function.date.php */
+		"date_format" => "m/d/Y",
 
 		/* If this is set to something other than "" then phpgiftreg will expect that
 			string to prefix all tables in this installation.  Useful for running
