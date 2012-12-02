@@ -166,7 +166,13 @@ $stmt->bindParam(2, $userid, PDO::PARAM_INT);
 $stmt->execute();
 $shoppees = array();
 while ($row = $stmt->fetch()) {
-	$row['list_stamp'] = ($row['list_stamp'] == 0 ? '-' : strftime($opt["date_format"], strtotime($row['list_stamp'])));
+	if ($row['list_stamp'] == 0) {
+		$row['list_stamp'] = '-';
+	}
+	else {
+		$listStampDate = new DateTime($row['list_stamp']);
+		$row['list_stamp'] = $listStampDate->format($opt["date_format"]);
+	}
 	$shoppees[] = $row;
 }
 
@@ -201,7 +207,8 @@ $stmt->bindParam(1, $userid, PDO::PARAM_INT);
 $stmt->execute();
 $messages = array();
 while ($row = $stmt->fetch()) {
-	$row['created'] = strftime($opt["date_format"], strtotime($row['created']));
+	$createdDateTime = new DateTime($row['created']);
+	$row['created'] = $createdDateTime->format($opt["date_format"]);
 	$messages[] = $row;
 }
 
@@ -231,32 +238,32 @@ while ($row = $stmt->fetch()) {
 	$days_left = -1;
 	if (!$row["recurring"] && (($row["ToDaysEventDate"] - $row["ToDaysToday"]) >= 0) && (($row["ToDaysEventDate"] - $row["ToDaysToday"]) <= $opt["event_threshold"])) {
 		$days_left = $row["ToDaysEventDate"] - $row["ToDaysToday"];
-		$event_date = strtotime($row["eventdate"]);
+		$event_date = new DateTime($row["eventdate"]);
 	}
 	else if ($row["recurring"] && (($row["ToDaysDateThisYear"] - $row["ToDaysToday"]) >= 0) && (($row["ToDaysDateThisYear"] - $row["ToDaysToday"]) <= $opt["event_threshold"])) {
 		$days_left = $row["ToDaysDateThisYear"] - $row["ToDaysToday"];
-		$event_date = strtotime($row["DateThisYear"]);
+		$event_date = new DateTime($row["DateThisYear"]);
 	}
 	else if ($row["recurring"] && (($row["ToDaysDateNextYear"] - $row["ToDaysToday"]) >= 0) && (($row["ToDaysDateNextYear"] - $row["ToDaysToday"]) <= $opt["event_threshold"])) {
 		$days_left = $row["ToDaysDateNextYear"] - $row["ToDaysToday"];
-		$event_date = strtotime($row["DateNextYear"]);
+		$event_date = new DateTime($row["DateNextYear"]);
 	}
 	if ($days_left >= 0) {
 		$thisevent = array(
 			'fullname' => $event_fullname,
 			'eventname' => $row['description'],
 			'daysleft' => $days_left,
-			'date' => strftime($opt["date_format"], $event_date)
+			'date' => $event_date->format($opt["date_format"])
 		);
 		$events[] = $thisevent;
 	}
 }
 					
 function compareEvents($a, $b) {
-	if ($a[0] == $b[0])
+	if ($a["daysleft"] == $b["daysleft"])
 		return 0;
 	else
-		return ($a > $b) ? 1 : -1;
+		return ($a["daysleft"] > $b["daysleft"]) ? 1 : -1;
 }
 					
 // i couldn't figure out another way to do this, so here goes.

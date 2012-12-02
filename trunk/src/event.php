@@ -67,7 +67,6 @@ if ($action == "insert" || $action == "update") {
 		$eventdate = new DateTime($_GET["eventdate"]);
 	}
 	catch (Exception $e) {
-	echo $e->getMessage();
 		$eventdate = FALSE;
 	}
 	$recurring = (strtoupper($_GET["recurring"]) == "ON" ? 1 : 0);
@@ -108,7 +107,7 @@ else if ($action == "edit") {
 		// we know this will work, see above.
 		$row = $stmt->fetch();
 		$description = $row["description"];
-		$eventdate = $row["eventdate"];
+		$eventdate = new DateTime($row["eventdate"]);
 		$recurring = $row["recurring"];
 		$systemevent = ($row["userid"] == "");
 	}
@@ -118,7 +117,7 @@ else if ($action == "edit") {
 }
 else if ($action == "") {
 	$description = "";
-	$eventdate = date("m/d/Y");
+	$eventdate = new DateTime();
 	$recurring = 1;
 	$systemevent = 0;
 }
@@ -184,7 +183,13 @@ try {
 
 	$events = array();
 	while ($row = $stmt->fetch()) {
-		$row['eventdate'] = strftime($opt["date_format"], strtotime($row['eventdate']));
+		try {
+			$eventDateTime = new DateTime($row['eventdate']);
+		}
+		catch (Exception $e) {
+			die("There was an error with an event with datetime " . $row['eventdate']);
+		}
+		$row['eventdate'] = $eventDateTime->format($opt["date_format"]);
 		$events[] = $row;
 	}
 
@@ -194,7 +199,7 @@ try {
 	$smarty->assign('action', $action);
 	$smarty->assign('haserror', $haserror);
 	$smarty->assign('events', $events);
-	$smarty->assign('eventdate', strftime($opt["date_format"], strtotime($eventdate)));
+	$smarty->assign('eventdate', $eventdate->format($opt["date_format"]));
 	if (isset($eventdate_error)) {
 		$smarty->assign('eventdate_error', $eventdate_error);
 	}
