@@ -95,11 +95,16 @@ while ($row = $stmt->fetch()) {
 	$families[] = $row;
 }
 
+if (count($families) == 1) {
+	// default the family to the single family we have.
+	$familyid = $families[0]["familyid"];
+}
 $smarty->assign('families', $families);
 $smarty->assign('username', $username);
 $smarty->assign('fullname', $fullname);
 $smarty->assign('email', $email);
 $smarty->assign('familyid', $familyid);
+$smarty->assign('familycount', count($families));
 $smarty->assign('action', $_POST["action"]);
 if (isset($error)) {
 	$smarty->assign('error', $error);
