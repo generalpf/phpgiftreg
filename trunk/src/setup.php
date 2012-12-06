@@ -40,6 +40,9 @@ if (isset($_POST["action"])) {
 		$pwd = $_POST["pwd"];
 		$email = $_POST["email"];
 		$familyname = $_POST["familyname"];
+		if (trim($familyname) == "") {
+			$familyname = "Default family";
+		}
 
 		// 1. create the family.
 		$stmt = dbh($opt)->prepare("INSERT INTO {$opt["table_prefix"]}families(familyname) VALUES(?)");
@@ -188,7 +191,7 @@ else {
 	<form name="setupform" id="setupform" method="post" action="setup.php">	
 		<input type="hidden" name="action" value="setup">
 		<div align="center">
-			<table cellpadding="3" class="partbox" width="50%">
+			<table cellpadding="3" class="partbox">
 				<tr>
 					<td colspan="2" class="partboxtitle" align="center">Set Up the Gift Registry</td>
 				</tr>
@@ -229,7 +232,7 @@ else {
 						<input id="email" name="email" size="30" maxlength="255" type="text" value="<?php if (isset($_POST["email"])) echo htmlspecialchars($_POST["email"]); ?>" />
 					</td>
 				</tr>
-				<tr>
+				<tr valign="top">
 					<td>Default/initial family name</td>
 					<td>
 						<input id="familyname" name="familyname" size="50" maxlength="255" type="text" value="<?php if (isset($_POST["familyname"])) echo htmlspecialchars($_POST["familyname"]); ?>" />

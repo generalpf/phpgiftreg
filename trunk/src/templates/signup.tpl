@@ -128,17 +128,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 									<input id="email" name="email" type="text" class="input-xlarge" value="{$email|escape:'htmlall'}" placeholder="you@somewhere.com">
 								</div>
 							</div>
-							<div class="control-group">
-								<label class="control-label" for="familyid">Family</label>
-								<div class="controls">
-									<select name="familyid">
-										<option value="">(select one)</option>
-										{foreach from=$families item=row}
-											<option value="{$row.familyid}">{$row.familyname|escape:'htmlall'}</option>
-										{/foreach}
-									</select>
+							{if $familycount > 1}
+								<div class="control-group">
+									<label class="control-label" for="familyid">Family</label>
+									<div class="controls">
+										<select name="familyid">
+											<option value="">(select one)</option>
+											{foreach from=$families item=row}
+												<option value="{$row.familyid}">{$row.familyname|escape:'htmlall'}</option>
+											{/foreach}
+										</select>
+									</div>
 								</div>
-							</div>
+							{else}
+								<input type="hidden" name="familyid" value="{$familyid}">
+							{/if}
 							<div class="form-actions">
 								<button type="submit" class="btn btn-primary">Submit</button>
 								<button type="button" class="btn" onClick="document.location.href='login.php';">Cancel</button>
