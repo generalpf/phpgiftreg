@@ -115,18 +115,21 @@ if (!empty($_REQUEST["action"])) {
 	if ($action == "delete") {
 		try {
 			/* find out if this item is bought or reserved. */
-			$stmt = $smarty->dbh()->prepare("SELECT a.userid, a.quantity, a.bought, i.description FROM {$opt["table_prefix"]}allocs a INNER JOIN {$opt["table_prefix"]}items i ON i.itemid = a.itemid WHERE a.itemid = ?");
+			$stmt = $smarty->dbh()->prepare("SELECT a.userid, a.quantity, a.bought, i.description FROM {$opt["table_prefix"]}allocs a LEFT OUTER JOIN {$opt["table_prefix"]}items i ON i.itemid = a.itemid WHERE a.itemid = ?");
 			$stmt->bindValue(1, (int) $_REQUEST["itemid"], PDO::PARAM_INT);
 			$stmt->execute();
 			while ($row = $stmt->fetch()) {
 				$buyerid = $row["userid"];
 				$quantity = $row["quantity"];
 				$bought = $row["bought"];
-				sendMessage($userid,
-					$buyerid,
-					$row["description"] . " that you " . (($bought == 1) ? "bought" : "reserved") . " $quantity of for {$_SESSION["fullname"]} has been deleted.  Check your reservation/purchase to ensure it's still needed.",
-					$smarty->dbh(),
-					$smarty->opt());
+				$description = $row["description"];	// need this for descriptions.
+				if ($buyerid != null) {
+					sendMessage($userid,
+						$buyerid,
+						$row["description"] . " that you " . (($bought == 1) ? "bought" : "reserved") . " $quantity of for {$_SESSION["fullname"]} has been deleted.  Check your reservation/purchase to ensure it's still needed.",
+						$smarty->dbh(),
+						$smarty->opt());
+				}
 			}
 	
 			deleteImageForItem((int) $_REQUEST["itemid"], $smarty->dbh(), $smarty->opt());
@@ -138,7 +141,7 @@ if (!empty($_REQUEST["action"])) {
 			// TODO: are we leaking allocs records here?
 		
 			stampUser($userid, $smarty->dbh(), $smarty->opt());
-			processSubscriptions($userid, $action, $smarty->dbh(), $smarty->opt());
+			processSubscriptions($userid, $action, $description, $smarty->dbh(), $smarty->opt());
 
 			header("Location: " . getFullPath("index.php?message=Item+deleted."));
 			exit;
@@ -194,7 +197,7 @@ if (!empty($_REQUEST["action"])) {
 			$stmt->execute();
 			
 			stampUser($userid, $smarty->dbh(), $smarty->opt());
-			processSubscriptions($userid, $action, $smarty->dbh(), $smarty->opt());
+			processSubscriptions($userid, $action, $description, $smarty->dbh(), $smarty->opt());
 
 			header("Location: " . getFullPath("index.php"));
 			exit;
@@ -232,7 +235,7 @@ if (!empty($_REQUEST["action"])) {
 			$stmt->execute();
 
 			stampUser($userid, $smarty->dbh(), $smarty->opt());
-			processSubscriptions($userid, $action, $smarty->dbh(), $smarty->opt());
+			processSubscriptions($userid, $action, $description, $smarty->dbh(), $smarty->opt());
 
 			header("Location: " . getFullPath("index.php"));
 			exit;		
