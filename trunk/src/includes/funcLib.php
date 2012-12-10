@@ -92,7 +92,7 @@ function getExistingQuantity($itemid, $userid, $bought, $dbh, $opt) {
 	}
 }
 
-function processSubscriptions($publisher, $action, $dbh, $opt) {
+function processSubscriptions($publisher, $action, $itemdesc, $dbh, $opt) {
 	// join the users table as a cheap way to get the guy's name without having to pass it in.
 	$stmt = $dbh->prepare("SELECT subscriber, fullname FROM subscriptions sub INNER JOIN users u ON u.userid = sub.publisher WHERE publisher = ? AND (last_notified IS NULL OR DATE_ADD(last_notified, INTERVAL {$opt["notify_threshold_minutes"]} MINUTE) < NOW())");
 	$stmt->bindParam(1, $publisher, PDO::PARAM_INT);
@@ -103,13 +103,13 @@ function processSubscriptions($publisher, $action, $dbh, $opt) {
 		if ($msg == "") {
 			// same message for each user but we need the fullname from the first row before we can assemble it.
 			if ($action == "insert") {
-				$msg = $row["fullname"] . " has added an item to their list.";
+				$msg = $row["fullname"] . " has added the item \"$itemdesc\" to their list.";
 			}
 			else if ($action == "update") {
-				$msg = $row["fullname"] . " has updated an item on their list.";
+				$msg = $row["fullname"] . " has updated the item \"$itemdesc\" on their list.";
 			}
 			else if ($action == "delete") {
-				$msg = $row["fullname"] . " has deleted an item from their list.";
+				$msg = $row["fullname"] . " has deleted the item \"$itemdesc\" from their list.";
 			}
 			$msg .= "\r\n\r\nYou are receiving this message because you are subscribed to their updates.  You will not receive another message for their updates for the next " . $opt["notify_threshold_minutes"] . " minutes.";
 		}
