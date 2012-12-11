@@ -154,13 +154,12 @@ else if ($action == "update") {
 				"admin = ? " . 
 				"WHERE userid = ?");
 		$stmt->bindParam(1, $username, PDO::PARAM_STR);
-		$stmt->bindParam(2, $pwd, PDO::PARAM_STR);
-		$stmt->bindParam(3, $fullname, PDO::PARAM_STR);
-		$stmt->bindParam(4, $email, PDO::PARAM_STR);
-		$stmt->bindParam(5, $email_msgs, PDO::PARAM_BOOL);
-		$stmt->bindParam(6, $approved, PDO::PARAM_BOOL);
-		$stmt->bindParam(7, $userisadmin, PDO::PARAM_BOOL);
-		$stmt->bindValue(8, (int) $_GET["userid"], PDO::PARAM_INT);
+		$stmt->bindParam(2, $fullname, PDO::PARAM_STR);
+		$stmt->bindParam(3, $email, PDO::PARAM_STR);
+		$stmt->bindParam(4, $email_msgs, PDO::PARAM_BOOL);
+		$stmt->bindParam(5, $approved, PDO::PARAM_BOOL);
+		$stmt->bindParam(6, $userisadmin, PDO::PARAM_BOOL);
+		$stmt->bindValue(7, (int) $_GET["userid"], PDO::PARAM_INT);
 		$stmt->execute();
 		header("Location: " . getFullPath("users.php?message=User+updated."));
 		exit;		
