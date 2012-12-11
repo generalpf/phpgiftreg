@@ -121,7 +121,7 @@ else if ($action == "update") {
 	}
 }
 else if ($action == "members") {
-	$members = $_GET["members"];
+	$members = isset($_GET["members"]) ? $_GET["members"] : array();
 	try {
 		/* first, delete all memberships for this family. */
 		$stmt = $smarty->dbh()->prepare("DELETE FROM {$opt["table_prefix"]}memberships WHERE familyid = ?");
