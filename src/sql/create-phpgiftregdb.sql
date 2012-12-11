@@ -170,3 +170,10 @@ CREATE TABLE memberships (
   familyid int(11) NOT NULL default '0',
   PRIMARY KEY  (userid,familyid)
 ) TYPE=MyISAM;
+
+CREATE TABLE `subscriptions` (
+	`publisher` int(11) NOT NULL,
+	`subscriber` int(11) NOT NULL,
+	`last_notified` datetime DEFAULT NULL,
+	PRIMARY KEY (`publisher`,`subscriber`)
+) TYPE=MyISAM;
