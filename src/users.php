@@ -197,6 +197,7 @@ while ($row = $stmt->fetch()) {
 }
 
 $smarty->assign('action', $action);
+$smarty->assign('edituserid', (int) $_GET["userid"]);
 $smarty->assign('username', $username);
 if (isset($username_error)) {
 	$smarty->assign('username_error', $username_error);

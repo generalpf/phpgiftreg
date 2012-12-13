@@ -132,7 +132,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 			<div class="span12">
 				<form name="theform" id="theform" method="get" action="users.php" class="well form-horizontal">	
 					{if $action == "edit" || (isset($haserror) && $action == "update")}
-						<input type="hidden" name="userid" value="{$userid}">
+						<input type="hidden" name="userid" value="{$edituserid}">
 						<input type="hidden" name="action" value="update">
 					{else if $action == "" || (isset($haserror) && $action == "insert")}
 						<input type="hidden" name="action" value="insert">
