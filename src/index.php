@@ -83,7 +83,7 @@ if (!empty($_GET["action"])) {
 	}
 	else if ($action == "subscribe") {
 		// ensure the current user can shop for that user first.
-		$stmt = $smarty->dbh()->prepare("SELECT pending FROM shoppers WHERE shopper = ? AND mayshopfor = ?");
+		$stmt = $smarty->dbh()->prepare("SELECT pending FROM {$opt["table_prefix"]}shoppers WHERE shopper = ? AND mayshopfor = ?");
 		$stmt->bindParam(1, $userid, PDO::PARAM_INT);
 		$stmt->bindValue(2, (int) $_GET["shoppee"], PDO::PARAM_INT);
 		$stmt->execute();
