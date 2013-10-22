@@ -118,6 +118,7 @@ if (!empty($_REQUEST["action"])) {
 			$stmt = $smarty->dbh()->prepare("SELECT a.userid, a.quantity, a.bought, i.description FROM {$opt["table_prefix"]}allocs a LEFT OUTER JOIN {$opt["table_prefix"]}items i ON i.itemid = a.itemid WHERE a.itemid = ?");
 			$stmt->bindValue(1, (int) $_REQUEST["itemid"], PDO::PARAM_INT);
 			$stmt->execute();
+			$description = ""; // need this outside of the while block.
 			while ($row = $stmt->fetch()) {
 				$buyerid = $row["userid"];
 				$quantity = $row["quantity"];
@@ -126,7 +127,7 @@ if (!empty($_REQUEST["action"])) {
 				if ($buyerid != null) {
 					sendMessage($userid,
 						$buyerid,
-						$row["description"] . " that you " . (($bought == 1) ? "bought" : "reserved") . " $quantity of for {$_SESSION["fullname"]} has been deleted.  Check your reservation/purchase to ensure it's still needed.",
+						"$description that you " . (($bought == 1) ? "bought" : "reserved") . " $quantity of for {$_SESSION["fullname"]} has been deleted.  Check your reservation/purchase to ensure it's still needed.",
 						$smarty->dbh(),
 						$smarty->opt());
 				}
