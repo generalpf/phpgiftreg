@@ -32,7 +32,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 				imageLoading: 'lightbox/images/lightbox-ico-loading.gif',
 				imageBtnClose: 'lightbox/images/lightbox-btn-close.gif',
 				imageBtnPrev: 'lightbox/images/lightbox-btn-prev.gif',
-				imageBtnNext: 'lightbox/images/lightbox-btn-next.gif'
+				imageBtnNext: 'lightbox/images/lightbox-btn-next.gif',
+				imageBlank: 'lightbox/images/lightbox-blank.gif'
 			});
 			$('a[rel=popover]').removeAttr('href').popover();
 			{if $opt.confirm_item_deletes}
