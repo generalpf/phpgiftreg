@@ -87,7 +87,7 @@ if (!empty($_REQUEST["action"])) {
 		}
 	}
 
-	if (!$haserror) {
+	if (isset($haserror) && !$haserror && isset($_REQUEST["image"])) {
 		if ($_REQUEST["image"] == "remove" || $_REQUEST["image"] == "replace") {
 			deleteImageForItem((int) $_REQUEST["itemid"], $smarty->dbh(), $smarty->opt());
 		}
@@ -264,7 +264,7 @@ while ($row = $stmt->fetch()) {
 
 $smarty->assign('userid', $userid);
 $smarty->assign('action', $action);
-$smarty->assign('haserror', $haserror);
+$smarty->assign('haserror', isset($haserror) ? $haserror : false);
 if (isset($_REQUEST['itemid'])) {
 	$smarty->assign('itemid', (int) $_REQUEST['itemid']);
 }

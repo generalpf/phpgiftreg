@@ -197,7 +197,7 @@ try {
 		$smarty->assign('message', $message);
 	}
 	$smarty->assign('action', $action);
-	$smarty->assign('haserror', $haserror);
+	$smarty->assign('haserror', isset($haserror) ? $haserror : false);
 	$smarty->assign('events', $events);
 	$smarty->assign('eventdate', $eventdate->format($opt["date_format"]));
 	if (isset($eventdate_error)) {
