@@ -34,7 +34,7 @@ if (!empty($_GET["message"])) {
     $message = $_GET["message"];
 }
 
-$action = $_GET["action"];
+$action = isset($_GET["action"]) ? $_GET["action"] : "";
 
 if ($action == "insert" || $action == "update") {
 	/* validate the data. */
@@ -160,7 +160,7 @@ $smarty->assign('rendered', $rendered);
 if (isset($rendered_error)) {
 	$smarty->assign('rendered_error', $rendered_error);
 }
-$smarty->assign('ranking', $_GET["ranking"]);
-$smarty->assign('haserror', $haserror);
+$smarty->assign('ranking', isset($_GET["ranking"]) ? (int) $_GET["ranking"] : "");
+$smarty->assign('haserror', isset($haserror) ? $haserror : false);
 $smarty->display('ranks.tpl');
 ?>

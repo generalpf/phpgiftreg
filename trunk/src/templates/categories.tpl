@@ -105,11 +105,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 		<div class="row">
 			<div class="span12">
 				<form name="categoryform" id="categoryform" method="get" action="categories.php" class="well form-horizontal">
-					{if $action == "edit" || (isset($haserror) && $action == "update")}
-						<input type="hidden" name="categoryid" value="{$categoryid}">
-						<input type="hidden" name="action" value="update">
-					{elseif $action == "" || (isset($haserror) && $action == "insert")}
-						<input type="hidden" name="action" value="insert">
+					{if isset($action)}
+						{if $action == "edit" || (isset($haserror) && $action == "update")}
+							<input type="hidden" name="categoryid" value="{$categoryid}">
+							<input type="hidden" name="action" value="update">
+						{elseif $action == "" || (isset($haserror) && $action == "insert")}
+							<input type="hidden" name="action" value="insert">
+						{/if}
 					{/if}
 					<fieldset>
 						<legend>{if $action == "edit"}Edit Category '{$category|escape:'htmlall'}'{else}Add Category{/if}</legend>

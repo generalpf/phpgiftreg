@@ -34,7 +34,7 @@ if (!empty($_GET["message"])) {
     $message = $_GET["message"];
 }
 
-$action = $_GET["action"];
+$action = isset($_GET["action"]) ? $_GET["action"] : "";
 
 if ($action == "insert" || $action == "update") {
 	/* validate the data. */
@@ -123,8 +123,6 @@ $smarty->assign('category', $category);
 if (isset($category_error)) {
 	$smarty->assign('category_error', $category_error);
 }
-$smarty->assign('haserror', $haserror);
-$smarty->assign('isadmin', $_SESSION["admin"]);
-$smarty->assign('opt', $smarty->opt());
+$smarty->assign('haserror', isset($haserror) ? $haserror : false);
 $smarty->display('categories.tpl');
 ?>
