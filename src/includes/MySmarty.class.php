@@ -27,7 +27,7 @@ class MySmarty extends Smarty {
 		return $opt;
 	}
 
-	public function display($template, $cache_id = "", $compile_id = "") {
+	public function display($template = NULL, $cache_id = NULL, $compile_id = NULL, $parent = NULL) {
 		parent::assign('isadmin', isset($_SESSION['admin']) ? $_SESSION['admin'] : false);
 		parent::assign('opt', $this->opt());
 		parent::display($template, $cache_id, $compile_id);
