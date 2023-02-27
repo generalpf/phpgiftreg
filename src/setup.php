@@ -86,7 +86,7 @@ if (isset($_POST["action"])) {
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 	<title>Gift Registry - Setup</title>
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 	<script src="js/jquery.validate.min.js"></script>
 	<script language="JavaScript" type="text/javascript">
 		$(document).ready(function() {
