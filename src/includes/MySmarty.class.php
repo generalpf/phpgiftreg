@@ -1,6 +1,6 @@
 <?php
 
-define('SMARTY_DIR', dirname(__FILE__) . "/Smarty-3.1.12/libs/");
+define('SMARTY_DIR', dirname(__FILE__) . "/smarty-3.1.48/libs/");
 require_once(SMARTY_DIR . "Smarty.class.php");
 require_once(dirname(__FILE__) . "/config.php");
 
