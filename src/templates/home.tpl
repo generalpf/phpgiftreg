@@ -124,7 +124,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 				{/foreach}
 			</tbody>
 		</table>
-		{if $myitems_count > $opt.items_per_page}
+		{if $myitems_count > $opt.items_per_page || $offset > 0}
 			<div class="pagination">
 				<ul>
 					{if $offset >= $opt.items_per_page}
