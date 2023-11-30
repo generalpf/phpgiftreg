@@ -40,9 +40,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						required: true,
 						maxlength: 255
 					},
-					/*category: {
+					category: {
 						required: true
-					},*/
+					},
 					price: {
 						required: true,
 						min: 0,
@@ -69,9 +69,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						required: "The item's description is required.",
 						maxlength: "The item's description must be 255 characters or less."
 					},
-					/*category: {
+					category: {
 						required: "A category must be selected."
-					},*/
+					},
 					price: {
 						required: "The item's price is required.",
 						min: "Price can't be a negative number.",
@@ -143,7 +143,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						<label class="control-label" for="category">Category</label>
 						<div class="controls">
 							<select id="category" name="category" class="input-xlarge">
-								<option value="" {if $category == NULL}SELECTED{/if}>Uncategorized</option>
+								<option value="">Uncategorized</option>
 								{foreach from=$categories item=row}
 									<option value="{$row.categoryid}" {if $row.categoryid == $category}SELECTED{/if}>{$row.category|escape:'htmlall'}</option>
 								{/foreach}
