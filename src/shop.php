@@ -66,7 +66,7 @@ if (!empty($_GET["action"])) {
 			$price = (float) $row["price"];
 			$cat = (int) $row["category"];
 		
-			$stmt = $smarty->dbh()->prepare("INSERT INTO {$opt["table_prefix"]}items(userid,description,price,source,url,comment,category,ranking,quantity) VALUES(?, ?, ?, ?, ?, ?, ?, 1, 1");
+			$stmt = $smarty->dbh()->prepare("INSERT INTO {$opt["table_prefix"]}items(userid,description,price,source,url,comment,category,ranking,quantity) VALUES(?, ?, ?, ?, ?, ?, ?, 1, 1)");
 			$stmt->bindParam(1, $userid, PDO::PARAM_INT);
 			$stmt->bindParam(2, $desc, PDO::PARAM_STR);
 			$stmt->bindParam(3, $price);
