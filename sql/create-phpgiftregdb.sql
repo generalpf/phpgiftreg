@@ -1,3 +1,9 @@
+CREATE DATABASE giftreg;
+
+USE giftreg;
+
+GRANT ALL ON giftreg.* TO giftreg;
+
 --
 -- Table structure for table `allocs`
 --
