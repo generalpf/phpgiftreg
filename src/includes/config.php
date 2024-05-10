@@ -18,11 +18,11 @@ function getGlobalOptions() {
 		/* The PDO connection string.
 			http://www.php.net/manual/en/pdo.connections.php
 		*/
-		"pdo_connection_string" => "mysql:host=localhost;dbname=giftreg",
+		"pdo_connection_string" => "mysql:host=mysql;dbname=giftreg",
 
 		/* The database username and password. */
 		"pdo_username" => "giftreg",
-		"pdo_password" => "cn3Malk",
+		"pdo_password" => "also_giftreg",
 
 		/* The maximum number of days before an event which produces a notification. */
 		"event_threshold" => "60",

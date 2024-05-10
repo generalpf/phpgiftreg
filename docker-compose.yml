@@ -1,0 +1,13 @@
+services:
+  web:
+    build: ./src/
+    ports:
+      - "8080:80"
+  mysql:
+    build: ./sql/
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: yes
+      MYSQL_USER: giftreg
+      MYSQL_PASSWORD: also_giftreg
