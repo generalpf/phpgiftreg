@@ -41,7 +41,7 @@ if ($action == "approve") {
 		$stmt->execute();
 	}
 	$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}users SET approved = 1, password = {$opt["password_hasher"]}(?) WHERE userid = ?");
-	$stmt->bindParam(1, $pwd, PDO::PARAM_INT);
+	$stmt->bindParam(1, $pwd, PDO::PARAM_STR);
 	$stmt->bindValue(2, (int) $_GET["userid"], PDO::PARAM_INT);
 	$stmt->execute();
 	
