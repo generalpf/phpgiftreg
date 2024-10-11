@@ -54,7 +54,7 @@ if ($action == "approve") {
 			$row["email"],
 			"Gift Registry application approved",
 			"Your Gift Registry application was approved by " . $_SESSION["fullname"] . ".\r\n" . 
-				"Your username is " . $row["username"] . " and your password is $pwd.",
+				"Your username is " . $row["username"] . " and your password is '$pwd'.",
 			"From: {$opt["email_from"]}\r\nReply-To: {$opt["email_reply_to"]}\r\nX-Mailer: {$opt["email_xmailer"]}\r\n"
 		) or die("Mail not accepted for " . $row["email"]);	
 	}

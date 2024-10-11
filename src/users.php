@@ -136,7 +136,7 @@ else if ($action == "insert") {
 			$email,
 			"Gift Registry account created",
 			"Your Gift Registry account was created.\r\n" . 
-				"Your username is $username and your password is $pwd.",
+				"Your username is $username and your password is '$pwd'.",
 			"From: {$opt["email_from"]}\r\nReply-To: {$opt["email_reply_to"]}\r\nX-Mailer: {$opt["email_xmailer"]}\r\n"
 		) or die("Mail not accepted for $email");	
 		header("Location: " . getFullPath("users.php?message=User+added+and+e-mail+sent."));
@@ -178,7 +178,7 @@ else if ($action == "reset") {
 	mail(
 		$resetemail,
 		"Gift Registry password reset",
-		"Your Gift Registry password was reset to $pwd.",
+		"Your Gift Registry password was reset to '$pwd'.",
 		"From: {$opt["email_from"]}\r\nReply-To: {$opt["email_reply_to"]}\r\nX-Mailer: {$opt["email_xmailer"]}\r\n"
 	) or die("Mail not accepted for $email");
 	header("Location: " . getFullPath("users.php?message=Password+reset."));
