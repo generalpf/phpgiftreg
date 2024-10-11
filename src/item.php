@@ -256,7 +256,7 @@ while ($row = $stmt->fetch()) {
 	$categories[] = $row;
 }
 
-$stmt = $smarty->dbh()->prepare("SELECT ranking, title FROM {$opt["table_prefix"]}ranks ORDER BY rankorder");
+$stmt = $smarty->dbh()->prepare("SELECT ranking, title FROM {$opt["table_prefix"]}ranks ORDER BY rankorder DESC");
 $stmt->execute();
 $ranks = array();
 while ($row = $stmt->fetch()) {
