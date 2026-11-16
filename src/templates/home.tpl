@@ -94,6 +94,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<th class="colheader"><a href="index.php?mysort=ranking">Ranking</a></th>
 					<th class="colheader"><a href="index.php?mysort=category">Category</a></th>
 					<th class="rcolheader"><a href="index.php?mysort=price">Price</a></th>
+					<th class="colheader"><a href="index.php?mysort=added">Added</a></th>
 					<th>&nbsp;</th>
 				</tr>
 			</thead>
@@ -115,6 +116,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 						<td nowrap>{$row.rendered}</td>
 						<td>{$row.category|default:"&nbsp;"}</td>
 						<td align="right">{$row.price}</td>
+						<td nowrap>{$row.date_added}</td>
 						<td align="right" nowrap>
 							<a href="receive.php?itemid={$row.itemid}"><img alt="Mark Item Received" src="images/return.png" border="0" title="Mark Item Received" /></a>&nbsp;
 							<a href="item.php?action=edit&itemid={$row.itemid}"><img alt="Edit Item" src="images/pencil.png" border="0" title="Edit Item" /></a>&nbsp;

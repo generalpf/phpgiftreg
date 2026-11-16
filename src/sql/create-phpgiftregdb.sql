@@ -76,6 +76,7 @@ CREATE TABLE `items` (
   `comment` text,
   `quantity` int(11) NOT NULL default '0',
   `image_filename` varchar(255) default NULL,
+  `date_added` datetime default CURRENT_TIMESTAMP,
   PRIMARY KEY  (`itemid`)
 );
 

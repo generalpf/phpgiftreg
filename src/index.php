@@ -130,11 +130,14 @@ else {
 		case "category":
 			$sortby = "c.category, rankorder DESC, i.description";
 			break;
+		case "added":
+			$sortby = "i.date_added DESC, rankorder DESC, i.description";
+			break;
 		default:
 			$sortby = "rankorder DESC, i.description";
 	}
 }
-$stmt = $smarty->dbh()->prepare("SELECT itemid, description, c.category, price, url, rendered, comment, image_filename FROM {$opt["table_prefix"]}items i LEFT OUTER JOIN {$opt["table_prefix"]}categories c ON c.categoryid = i.category LEFT OUTER JOIN {$opt["table_prefix"]}ranks r ON r.ranking = i.ranking WHERE userid = ? ORDER BY " . $sortby);
+$stmt = $smarty->dbh()->prepare("SELECT itemid, description, c.category, price, url, rendered, comment, image_filename, date_added FROM {$opt["table_prefix"]}items i LEFT OUTER JOIN {$opt["table_prefix"]}categories c ON c.categoryid = i.category LEFT OUTER JOIN {$opt["table_prefix"]}ranks r ON r.ranking = i.ranking WHERE userid = ? ORDER BY " . $sortby);
 $stmt->bindParam(1, $userid, PDO::PARAM_INT);
 $stmt->execute();
 $myitems_count = 0;
@@ -145,6 +148,13 @@ for ($i = 0; $i < $offset; $i++, ++$myitems_count) {
 $i = 0;
 while ($i++ < $opt["items_per_page"] && $row = $stmt->fetch()) {
 	$row['price'] = formatPrice($row['price'], $opt);
+	if ($row['date_added'] === null) {
+		$row['date_added'] = '-';
+	}
+	else {
+		$dateAdded = new DateTime($row['date_added']);
+		$row['date_added'] = $dateAdded->format($opt["date_format"]);
+	}
 	$myitems[] = $row;
 	++$myitems_count;
 }

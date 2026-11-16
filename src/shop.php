@@ -124,6 +124,9 @@ else {
 		case "category":
 			$sortby = "c.category, rankorder DESC, description";
 			break;
+		case "added":
+			$sortby = "i.date_added DESC, rankorder DESC, description";
+			break;
 		default:
 			$sortby = "rankorder DESC, description";
 	}
@@ -136,7 +139,7 @@ else {
 $stmt = $smarty->dbh()->prepare("SELECT i.itemid, description, price, source, c.category, url, image_filename, " .
 		"ub.fullname AS bfullname, ub.userid AS boughtid, " .
 		"ur.fullname AS rfullname, ur.userid AS reservedid, " .
-		"rendered, i.comment, i.quantity " .
+		"rendered, i.comment, i.quantity, i.date_added " .
 	"FROM {$opt["table_prefix"]}items i " .
 	"LEFT OUTER JOIN {$opt["table_prefix"]}categories c ON c.categoryid = i.category " .
 	"LEFT OUTER JOIN {$opt["table_prefix"]}ranks r ON r.ranking = i.ranking " .
@@ -150,6 +153,13 @@ $stmt->execute();
 $shoprows = array();
 while ($row = $stmt->fetch()) {
 	$row['price'] = formatPrice($row['price'], $opt);
+	if ($row['date_added'] === null) {
+		$row['date_added'] = '-';
+	}
+	else {
+		$dateAdded = new DateTime($row['date_added']);
+		$row['date_added'] = $dateAdded->format($opt["date_format"]);
+	}
 	if ($row['quantity'] > 1) {
 		// check the allocs table to see what has been allocated.
 		$avail = $row['quantity'];

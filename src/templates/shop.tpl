@@ -92,6 +92,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 				<th><a href="shop.php?shopfor={$shopfor}&sort=category">Category</a></th>
 				<th><a href="shop.php?shopfor={$shopfor}&sort=price">Price</a></th>
 				<th><a href="shop.php?shopfor={$shopfor}&sort=source">Store/Location</a></th>
+				<th><a href="shop.php?shopfor={$shopfor}&sort=added">Added</a></th>
 				<th><a href="shop.php?shopfor={$shopfor}&sort=status">Status</a></th>
 				<th>&nbsp;</th>
 			</tr>
@@ -115,6 +116,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 					<td>{$row.category|default:"&nbsp;"}</td>
 					<td align="right">{$row.price}</td>
 					<td>{$row.source|escape:'htmlall'}</td>
+					<td nowrap>{$row.date_added}</td>
 					{if $row.quantity > 1}
 						<td>
 							{foreach from=$row.allocs item=alloc}
