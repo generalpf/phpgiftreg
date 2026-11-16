@@ -3,6 +3,7 @@
 define('SMARTY_DIR', dirname(__FILE__) . "/smarty-3.1.48/libs/");
 require_once(SMARTY_DIR . "Smarty.class.php");
 require_once(dirname(__FILE__) . "/config.php");
+require_once(dirname(__FILE__) . "/migrate.php");
 
 class MySmarty extends Smarty {
 	public function __construct() {
@@ -13,10 +14,12 @@ class MySmarty extends Smarty {
 
 	public function dbh() {
 		$opt = $this->opt();
-		return new PDO(
+		$dbh = new PDO(
 			$opt["pdo_connection_string"],
 			$opt["pdo_username"],
 			$opt["pdo_password"]);
+		runMigrations($dbh, $opt);
+		return $dbh;
 	}
 
 	public function opt() {
