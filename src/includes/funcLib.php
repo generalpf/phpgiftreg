@@ -172,6 +172,30 @@ function generatePassword($opt) {
 	return $newstring;
 }
 
+/* Passwords are hashed with password_hash().  Older versions hashed them in SQL
+	with MD5() or SHA1(), or stored them as plaintext; verifyPassword() still
+	accepts those so that login can upgrade them with passwordNeedsRehash(). */
+function hashPassword($password) {
+	return password_hash($password, PASSWORD_DEFAULT);
+}
+
+function verifyPassword($password, $stored) {
+	if (password_get_info($stored)["algo"]) {
+		return password_verify($password, $stored);
+	}
+	if (preg_match('/^[0-9a-f]{32}$/i', $stored)) {
+		return hash_equals(strtolower($stored), md5($password));
+	}
+	if (preg_match('/^[0-9a-f]{40}$/i', $stored)) {
+		return hash_equals(strtolower($stored), sha1($password));
+	}
+	return hash_equals($stored, $password);
+}
+
+function passwordNeedsRehash($stored) {
+	return password_needs_rehash($stored, PASSWORD_DEFAULT);
+}
+
 function formatPrice($price, $opt) {
 	if ($price == 0.0 && $opt["hide_zero_price"])
 		return "&nbsp;";

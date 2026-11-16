@@ -13,12 +13,16 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+require_once(dirname(__FILE__) . "/includes/funcLib.php");
 require_once(dirname(__FILE__) . "/includes/config.php");
+require_once(dirname(__FILE__) . "/includes/migrate.php");
 
 $opt = getGlobalOptions();
 
 function dbh($opt) {
-	return new PDO($opt["pdo_connection_string"], $opt["pdo_username"], $opt["pdo_password"]);
+	$dbh = new PDO($opt["pdo_connection_string"], $opt["pdo_username"], $opt["pdo_password"]);
+	runMigrations($dbh, $opt);
+	return $dbh;
 }
 
 $stmt = dbh($opt)->prepare("SELECT COUNT(*) AS user_count FROM {$opt["table_prefix"]}users");
@@ -58,10 +62,10 @@ if (isset($_POST["action"])) {
 		else die("No family was created.");
 
 		// 3. insert the user.
-		$stmt = dbh($opt)->prepare("INSERT INTO {$opt["table_prefix"]}users(username,fullname,password,email,approved,admin,initialfamilyid) VALUES(?, ?, {$opt["password_hasher"]}(?), ?, 1, 1, ?)");
+		$stmt = dbh($opt)->prepare("INSERT INTO {$opt["table_prefix"]}users(username,fullname,password,email,approved,admin,initialfamilyid) VALUES(?, ?, ?, ?, 1, 1, ?)");
 		$stmt->bindParam(1, $username, PDO::PARAM_STR);
 		$stmt->bindParam(2, $fullname, PDO::PARAM_STR);
-		$stmt->bindParam(3, $pwd, PDO::PARAM_STR);
+		$stmt->bindValue(3, hashPassword($pwd), PDO::PARAM_STR);
 		$stmt->bindParam(4, $email, PDO::PARAM_STR);
 		$stmt->bindParam(5, $familyid, PDO::PARAM_INT);
 		$stmt->execute();

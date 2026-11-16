@@ -143,7 +143,7 @@ CREATE TABLE `families` (
 CREATE TABLE `users` (
   `userid` int(11) NOT NULL auto_increment,
   `username` varchar(20) NOT NULL default '',
-  `password` varchar(50) NOT NULL default '',
+  `password` varchar(255) NOT NULL default '',
   `fullname` varchar(50) NOT NULL default '',
   `email` varchar(255) default NULL,
   `approved` tinyint(1) NOT NULL default '0',

@@ -37,10 +37,10 @@ if (isset($_POST["action"]) && $_POST["action"] == "signup") {
 		// when the account is approved.
 		$pwd = generatePassword($opt);
 
-		$stmt = $smarty->dbh()->prepare("INSERT INTO {$opt["table_prefix"]}users(username,fullname,password,email,approved,initialfamilyid) VALUES(?, ?, {$opt["password_hasher"]}(?), ?, ?, ?)");
+		$stmt = $smarty->dbh()->prepare("INSERT INTO {$opt["table_prefix"]}users(username,fullname,password,email,approved,initialfamilyid) VALUES(?, ?, ?, ?, ?, ?)");
 		$stmt->bindParam(1, $username, PDO::PARAM_STR);
 		$stmt->bindParam(2, $fullname, PDO::PARAM_STR);
-		$stmt->bindParam(3, $pwd, PDO::PARAM_STR);
+		$stmt->bindValue(3, hashPassword($pwd), PDO::PARAM_STR);
 		$stmt->bindParam(4, $email, PDO::PARAM_STR);
 		$stmt->bindValue(5, !$opt["newuser_requires_approval"], PDO::PARAM_BOOL);
 		$stmt->bindParam(6, $familyid, PDO::PARAM_INT);
