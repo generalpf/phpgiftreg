@@ -40,8 +40,8 @@ if ($action == "approve") {
 		$stmt->bindValue(2, (int) $_GET["familyid"], PDO::PARAM_INT);
 		$stmt->execute();
 	}
-	$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}users SET approved = 1, password = {$opt["password_hasher"]}(?) WHERE userid = ?");
-	$stmt->bindParam(1, $pwd, PDO::PARAM_INT);
+	$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}users SET approved = 1, password = ? WHERE userid = ?");
+	$stmt->bindValue(1, hashPassword($pwd), PDO::PARAM_STR);
 	$stmt->bindValue(2, (int) $_GET["userid"], PDO::PARAM_INT);
 	$stmt->execute();
 	

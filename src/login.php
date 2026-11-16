@@ -30,12 +30,18 @@ if (!empty($_POST["username"])) {
 	$password = $_POST["password"];
 
 	try {
-		$stmt = $smarty->dbh()->prepare("SELECT userid, fullname, admin FROM {$opt["table_prefix"]}users WHERE username = ? AND password = {$opt["password_hasher"]}(?) AND approved = 1");
+		$stmt = $smarty->dbh()->prepare("SELECT userid, fullname, admin, password FROM {$opt["table_prefix"]}users WHERE username = ? AND approved = 1");
 		$stmt->bindParam(1, $username, PDO::PARAM_STR);
-		$stmt->bindParam(2, $password, PDO::PARAM_STR);
 
 		$stmt->execute();
-		if ($row = $stmt->fetch()) {
+		if (($row = $stmt->fetch()) && verifyPassword($password, $row["password"])) {
+			// upgrade hashes from older versions (or older password_hash defaults).
+			if (passwordNeedsRehash($row["password"])) {
+				$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}users SET password = ? WHERE userid = ?");
+				$stmt->bindValue(1, hashPassword($password), PDO::PARAM_STR);
+				$stmt->bindValue(2, $row["userid"], PDO::PARAM_INT);
+				$stmt->execute();
+			}
 			session_start();
 			$_SESSION["userid"] = $row["userid"];
 			$_SESSION["fullname"] = $row["fullname"];

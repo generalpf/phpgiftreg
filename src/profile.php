@@ -36,8 +36,8 @@ if (!empty($_POST["action"])) {
 		$newpwd = $_POST["newpwd"];
 
 		try {
-			$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}users SET password = {$opt["password_hasher"]}(?) WHERE userid = ?");
-			$stmt->bindParam(1, $newpwd, PDO::PARAM_STR);
+			$stmt = $smarty->dbh()->prepare("UPDATE {$opt["table_prefix"]}users SET password = ? WHERE userid = ?");
+			$stmt->bindValue(1, hashPassword($newpwd), PDO::PARAM_STR);
 			$stmt->bindParam(2, $userid, PDO::PARAM_INT);
 
 			$stmt->execute();
